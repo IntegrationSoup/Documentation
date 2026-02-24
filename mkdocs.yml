@@ -1,0 +1,33 @@
+﻿site_name: Integration Soup Docs
+site_description: Documentation for Integration Soup / Integration Host
+repo_url: https://github.com/IntegrationSoup/Documentation
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.instant
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.action.edit
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Workflow:
+      - Overview: workflow/index.md
+      - Receiver Activities: workflow/receiver-activities/index.md
+      - Sender Activities:
+          - Overview: workflow/sender-activities/index.md
+          - File Writer: workflow/sender-activities/FileWriter.md
+      - Examples: workflow/examples/index.md
