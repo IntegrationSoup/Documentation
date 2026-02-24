@@ -2,7 +2,7 @@
 
 **Key Points**  
 - The **File Writer Sender** outputs processed messages (via `MessageTemplate`) to a file on disk, supporting HL7, XML, JSON, CSV, Text, and Binary formats.  
-- Use `${variables}` (e.g. `${WorkflowInstanceId}`, `${PatientID}`, `${Date:yyyyMMdd}`) in paths for safe, unique filenames — fixed names risk overwriting without proper configuration.  
+- Use `${variables}` (e.g. `${WorkflowInstanceId}`, `${PatientID}`, `${CurrentDateTime:yyyyMMdd}`) in paths for safe, unique filenames — fixed names risk overwriting without proper configuration.  
 - **MaxRecordsPerFile** is **only enforced** when `MoveIntoDirectoryOnComplete = true`; otherwise the file appends indefinitely (no rotation). When move is enabled, the file closes and moves on max records reached, filename change, or workflow stop.  
 - Enable **MoveIntoDirectoryOnComplete** in production to guarantee complete files for downstream systems and automatic unique naming on move.  
 - Workflows store these settings in **JSON** format; all properties are serialized directly from `FileWriterSenderSetting`.  
@@ -63,10 +63,10 @@ Workflows are stored as JSON (`.workflow` or exported files). Each activity is a
   "MessageTypeOptions": {
     "Header": "PatientID,FirstName,LastName,DOB,AdmissionDate"
   },
-  "FilePathToWrite": "C:\\TempOut\\daily_report_${Date:yyyyMMdd}.csv",
+  "FilePathToWrite": "C:\\TempOut\\daily_report_${CurrentDateTime:yyyyMMdd}.csv",
   "MaxRecordsPerFile": 5000,
   "MoveIntoDirectoryOnComplete": true,
-  "DirectoryToMoveInto": "C:\\Archive\\CSV\\${Date:yyyyMMdd}",
+  "DirectoryToMoveInto": "C:\\Archive\\CSV\\${CurrentDateTime:yyyyMMdd}",
   "Filters": "00000000-0000-0000-0000-000000000000",
   "Transformers": "00000000-0000-0000-0000-000000000000",
   "Enabled": true,
@@ -117,7 +117,7 @@ Workflows are stored as JSON (`.workflow` or exported files). Each activity is a
 "FilePathToWrite": "C:\\TempOut\\batch.csv",
 "MaxRecordsPerFile": 5000,
 "MoveIntoDirectoryOnComplete": true,
-"DirectoryToMoveInto": "C:\\Archive\\${Date:yyyy-MM-dd}",
+"DirectoryToMoveInto": "C:\\Archive\\${CurrentDateTime:yyyy-MM-dd}",
 "MessageType": 5,
 "MessageTypeOptions": { "Header": "ID,Name,DOB" }
 ```
@@ -132,7 +132,7 @@ Workflows are stored as JSON (`.workflow` or exported files). Each activity is a
 
 ### Scenario 4: Daily Dynamic Archive (No Move)
 ```json
-"FilePathToWrite": "C:\\Archive\\reports_${Date:yyyyMMdd}.csv",
+"FilePathToWrite": "C:\\Archive\\reports_${CurrentDateTime:yyyyMMdd}.csv",
 "MaxRecordsPerFile": 10000,   // ignored because move=false
 "MoveIntoDirectoryOnComplete": false
 ```
@@ -161,13 +161,3 @@ Workflows are stored as JSON (`.workflow` or exported files). Each activity is a
 - Move checkbox dynamically shows/hides directory field.  
 - Variable binding enabled on all text fields (outbound context).
 
-This guide supersedes all prior tutorial snippets and is kept in sync with the `FileWriterSenderSetting` class implementation.
-
-**Key Citations**  
-- Official Processing Files Tutorial (integrationsoup.com) – detailed move, max-records, unique naming, and variable examples.  
-- Integration Host Getting Started Guide (integrationsoup.com) – workflow designer File Writer configuration and CSV examples.  
-- Integration Workflow Designer Tutorial (integrationsoup.com) – MessageTemplate and MessageType usage.  
-- Source code of `EditFileWriterSenderSetting.cs`, `FileWriterSenderSetting.cs`, and `SenderSetting.cs` – exact property definitions, defaults, validation, and move conditions.  
-- Developer clarification on MaxRecordsPerFile behavior when move=false.  
-
-Copy this entire document into a `.md` file for internal use or team distribution. It is the complete, self-contained reference for all JSON-based workflow authoring involving the File Writer.
