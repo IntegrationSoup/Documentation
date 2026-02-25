@@ -27,6 +27,7 @@ nav:
   - Workflow:
       - Overview: workflow/index.md
       - Variables: workflow/variables.md
+      - Paths: workflow/paths.md
       - Receiver Activities: workflow/receiver-activities/index.md
       - Sender Activities:
           - Overview: workflow/sender-activities/index.md
