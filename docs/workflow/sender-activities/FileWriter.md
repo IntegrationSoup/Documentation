@@ -70,12 +70,7 @@ Workflows are stored as JSON (`.workflow` or exported files). Each activity is a
   "Filters": "00000000-0000-0000-0000-000000000000",
   "Transformers": "00000000-0000-0000-0000-000000000000",
   "Enabled": true,
-  "Details": "Write to file C:\\TempOut\\daily_report_...",
-  // Inherited SenderSetting fields
-  "ConnectionTypeName": "Sender",
-  "UserCanEditTemplate": true,
-  "InboundMessageNotAvailable": false
-}
+  }
 ```
 
 **Notes on JSON:**  
@@ -86,17 +81,17 @@ Workflows are stored as JSON (`.workflow` or exported files). Each activity is a
 
 ## 3. Property Reference (All Serializable Properties)
 
-| Property                        | Type     | Default          | Required? | JSON Key                  | Description & Usage Rules |
-|---------------------------------|----------|------------------|-----------|---------------------------|---------------------------|
-| `FilePathToWrite`              | string   | ""               | Yes       | FilePathToWrite           | Full path + filename. Must include extension. Supports `${variables}`. Directory-only path triggers UI/runtime warning. |
-| `MaxRecordsPerFile`            | int      | 5000             | Yes (>0)  | MaxRecordsPerFile         | **Only used when `MoveIntoDirectoryOnComplete = true`**. Number of records before rotation/move. Use 1 for one-per-file formats. |
-| `MoveIntoDirectoryOnComplete`  | bool     | false            | No        | MoveIntoDirectoryOnComplete | Master switch for safe archival. When true → enforces max-records and guarantees unique name on move. |
-| `DirectoryToMoveInto`          | string   | "c:\\"           | Conditional | DirectoryToMoveInto     | Required & validated only when move = true. Supports `${variables}`. Engine creates folder if missing. |
-| `MessageTemplate`              | string   | (auto-bound)     | Yes       | MessageTemplate           | Exact content written. Usually `${Inbound}` or custom template. Preserved verbatim after transformers. |
-| `MessageType`                  | enum (int) | 1 (HL7)        | Yes       | MessageType               | 1=HL7, 4=XML, 5=CSV, 11/13=JSON, 14=Text/Binary. Controls header visibility and multi-record support. |
-| `MessageTypeOptions.Header`    | string   | ""               | No        | (nested)                  | Optional first line for CSV/Text only. Comma-separated for CSV. |
-| `Name`                         | string   | (auto)           | No        | Name                      | Display name; auto-generated from path if blank. |
-| `Id`                           | Guid     | (generated)      | Yes       | Id                        | Unique activity ID. |
+| Property                        | Type     | Default          | Required? | Description & Usage Rules |
+|---------------------------------|----------|------------------|-----------|---------------------------|
+| `FilePathToWrite`              | string   | ""               | Yes       | Full path + filename. Must include extension. Supports `${variables}`. Directory-only path triggers UI/runtime warning. |
+| `MaxRecordsPerFile`            | int      | 5000             | Yes (>0)  | **Only used when `MoveIntoDirectoryOnComplete = true`**. Number of records before rotation/move. Use 1 for one-per-file formats. |
+| `MoveIntoDirectoryOnComplete`  | bool     | false            | No        | Master switch for safe archival. When true → enforces max-records and guarantees unique name on move. |
+| `DirectoryToMoveInto`          | string   | "c:\\"           | Conditional | Required & validated only when move = true. Supports `${variables}`. Engine creates folder if missing. |
+| `MessageTemplate`              | string   | (auto-bound)     | Yes       | Exact content written. Usually `${Inbound}` or custom template. Preserved verbatim after transformers. |
+| `MessageType`                  | enum (int) | 1 (HL7)        | Yes       | 1=HL7, 4=XML, 5=CSV, 11/13=JSON, 14=Text/Binary. Controls header visibility and multi-record support. |
+| `MessageTypeOptions.Header`    | string   | ""               | No        | Optional first line for CSV/Text only. Comma-separated for CSV. |
+| `Name`                         | string   | (auto)           | No        | Display name; auto-generated from path if blank. |
+| `Id`                           | Guid     | (generated)      | Yes       | Unique activity ID. |
 
 **Runtime variants** (not set in JSON, computed):  
 - `FilePathToWriteRuntimeValue(...)`  
