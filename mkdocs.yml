@@ -21,15 +21,5 @@ markdown_extensions:
 
 plugins:
   - search
+  - awesome-pages
 
-nav:
-  - Home: index.md
-  - Workflow:
-      - Overview: workflow/index.md
-      - Variables: workflow/variables.md
-      - Paths: workflow/paths.md
-      - Receiver Activities: workflow/receiver-activities/index.md
-      - Sender Activities:
-          - Overview: workflow/sender-activities/index.md
-          - File Writer: workflow/sender-activities/FileWriter.md
-      - Examples: workflow/examples/index.md
