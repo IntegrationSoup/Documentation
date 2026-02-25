@@ -7,6 +7,12 @@ theme:
   name: material
   logo: assets/images/logo.png
   favicon: assets/images/favicon.png
+
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+
   features:
     - navigation.sections
     - navigation.instant
@@ -25,3 +31,5 @@ plugins:
   - search
   - awesome-pages
 
+extra_css:
+  - assets/stylesheets/extra.css
