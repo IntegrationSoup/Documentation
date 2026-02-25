@@ -5,6 +5,8 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  logo: assets/images/logo.png
+  favicon: assets/images/favicon.png
   features:
     - navigation.sections
     - navigation.instant
