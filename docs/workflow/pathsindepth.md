@@ -1,4 +1,4 @@
-# Paths in Integration Soup Workflows
+# Integration Soup Paths in Workflows Detailed
 
 ## Why paths matter
 

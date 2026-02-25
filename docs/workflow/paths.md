@@ -1,4 +1,4 @@
-# Integration Soup — Paths in Workflows (Concise Guide)
+# Integration Soup Paths (Concise)
 
 Paths are how you **locate values inside messages** so you can use them in **variables, transformers, filters, bindings, database parameters, HTTP arguments**, and other workflow settings.
 

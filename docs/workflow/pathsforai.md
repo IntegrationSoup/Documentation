@@ -1,4 +1,4 @@
-# Integration Soup Path Reference
+# Integration Soup Paths For AI
 
 ## Executive summary
 
