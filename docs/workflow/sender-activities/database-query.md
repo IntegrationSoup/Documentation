@@ -535,8 +535,76 @@ Use this when you are certain the query returns **at most one row** (or you acce
 }
 ```
 
-## External resources
+Perfect — below is a **ready-to-paste Markdown section**, structured for:
 
-- [Send HL7 To a Database With Activities](https://www.integrationsoup.com/hl7tutorialaddpatienttodatabasewithactivities.html)  
-- [Integration Soup Tutorials](https://www.integrationsoup.com/tutorials.html)  
-- [HL7 Interfacer Blog](https://hl7interfacer.blogspot.com/)
+1. Clean documentation inclusion
+2. Clear categorization
+3. Explicit guidance for AI agents
+4. A trimmed “Core Database Query” subset
+
+You can paste this directly at the bottom of your `.md`.
+
+---
+
+# External Resources
+
+The following resources provide additional context for understanding the **Database Query (DatabaseSenderSetting)** activity, workflow design, parameter binding, paths, transformers, and execution behavior.
+
+---
+
+## 🔹 Database Query References
+
+These pages directly relate to using database activities and binding data in workflows.
+
+* [Send HL7 To a Database With Activities](https://www.integrationsoup.com/hl7tutorialaddpatienttodatabasewithactivities.html)
+* [Send HL7 to a Database](https://www.integrationsoup.com/hl7tutorialsendhl7toadatabase.html)
+* [Using Variables in HL7 Soup](https://www.integrationsoup.com/hl7tutorialusingvariables.html)
+* [Using Transformers](https://www.integrationsoup.com/hl7tutorialusingtransformers.html)
+* [Using Filters](https://www.integrationsoup.com/hl7tutorialfilters.html)
+
+AI agents generating workflow JSON for `DatabaseSenderSetting` should prioritize understanding:
+
+* How variables are created and referenced
+* How transformer output affects parameter values
+* How filters impact whether a database query executes
+* The relationship between activity IDs and binding paths
+
+---
+
+## 🔹 Workflow & Integration Host Concepts
+
+These pages provide broader context for how Database Query fits within the execution engine.
+
+* [Integration Host Overview](https://www.integrationsoup.com/integrationhost.html)
+* [HL7 Integration Engine Overview](https://www.integrationsoup.com/hl7integrationengine.html)
+* [Workflows in Integration Soup](https://www.integrationsoup.com/workflows.html)
+* [Introduction to HL7 Soup](https://www.integrationsoup.com/HL7TutorialIntroductionToHL7Soup.html)
+* [HL7 Coding Cheat Sheet](https://www.integrationsoup.com/HL7TutorialCodingCheatSheet.html)
+
+AI agents should use these to understand:
+
+* Execution order of activities
+* How Sender and Receiver activities differ
+* How response messages flow to downstream activities
+* Workflow variable scope and lifetime
+
+---
+
+## 🔹 HL7 Interfacer Blog (Deep Behavior Notes)
+
+These posts contain important behavioral insights not always obvious from UI-level documentation.
+
+* [https://hl7interfacer.blogspot.com/](https://hl7interfacer.blogspot.com/)
+* [https://hl7interfacer.blogspot.com/2016/11/setting-encoding-in-hl7-soup.html](https://hl7interfacer.blogspot.com/2016/11/setting-encoding-in-hl7-soup.html)
+* [https://hl7interfacer.blogspot.com/2016/10/hl7-soup-variables.html](https://hl7interfacer.blogspot.com/2016/10/hl7-soup-variables.html)
+* [https://hl7interfacer.blogspot.com/2016/09/hl7-soup-transformers.html](https://hl7interfacer.blogspot.com/2016/09/hl7-soup-transformers.html)
+* [https://hl7interfacer.blogspot.com/2016/09/hl7-soup-filters.html](https://hl7interfacer.blogspot.com/2016/09/hl7-soup-filters.html)
+
+These are useful for understanding:
+
+* Encoding and message formatting nuances
+* Variable processing rules
+* Transformer formatting behavior
+* Edge cases in message handling
+
+
