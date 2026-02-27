@@ -334,7 +334,7 @@ flowchart TD
   E -- yes --> C
 
   C --> G[Read all rows]
-  G --> H[For each row: quote CSV fields; base64 byte[]]
+  G --> H[For each row: quote CSV fields]
   H --> I[Buffer row strings in Records list]
 
   I --> J{Records has next row?}
