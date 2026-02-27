@@ -1,4 +1,4 @@
-**File Writer Sender – Definitive Guide**
+**File Writer (FileWriterSenderSetting))**
 
 **Key Points**  
 - The **File Writer Sender** outputs processed messages (via `MessageTemplate`) to a file on disk, supporting HL7, XML, JSON, CSV, Text, and Binary formats.  
