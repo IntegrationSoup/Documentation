@@ -2,7 +2,7 @@
 
 ## Executive summary
 
-The **HTTP Sender** activity (`HttpSenderSetting`) executes an outbound HTTP request using a configured **URL**, **method**, **headers**, and (for non-GET methods) a **payload** derived from the workflow’s outbound message content. It optionally records and exposes the HTTP response back to the workflow when `WaitForResponse` is enabled. Integration Soup promotes HTTP as a first-class way to call REST services (including FHIR endpoints), to send JSON/XML/CSV/text/binary payloads, and to secure traffic over TLS. citeturn6view2turn6view0turn6view3
+The **HTTP Sender** activity (`HttpSenderSetting`) executes an outbound HTTP request using a configured **URL**, **method**, **headers**, and (for non-GET methods) a **payload** derived from the workflow’s outbound message content. It optionally records and exposes the HTTP response back to the workflow when `WaitForResponse` is enabled. Integration Soup promotes HTTP as a first-class way to call REST services (including FHIR endpoints), to send JSON/XML/CSV/text/binary payloads, and to secure traffic over TLS.
 
 Important non-obvious points for JSON authors (from the provided code):
 
@@ -82,8 +82,8 @@ This is a **canonical** “safe-to-author” JSON example. It includes the sende
 
 Notes tied to product behavior:
 
-- Integration Soup positions HTTP Sender as a way to call REST services and to send JSON and other formats; it also highlights secure sending over SSL/TLS. citeturn6view2turn6view0
-- HTTP sender headers and timeout configurability were introduced/enhanced in the v3.3-era feature set. citeturn6view1
+- Integration Soup positions HTTP Sender as a way to call REST services and to send JSON and other formats; it also highlights secure sending over SSL/TLS.
+- HTTP sender headers and timeout configurability were introduced/enhanced in the v3.3-era feature set.
 
 ### Canonical header object schema (DatabaseSettingParameter)
 
@@ -196,7 +196,7 @@ This is the mapping you requested to be treated as authoritative for JSON author
 | `1` | HL7 | Used when you want the response interpreted as HL7 (and for HL7 path binding modes in other tools). |
 | `4` | XML | Response is treated as text and then interpreted as XML by downstream tooling. |
 | `5` | CSV | Response is treated as text and then interpreted as CSV. |
-| `11` | JSON | Response is treated as text and then interpreted as JSON (FHIR commonly uses JSON over REST). citeturn6view2turn6view4 |
+| `11` | JSON | Response is treated as text and then interpreted as JSON (FHIR commonly uses JSON over REST). |
 | `13` | Text | Plain text response handling (label inferred; mapping text was inconsistent, so treat this as “Text” and confirm in your codebase if needed). |
 | `14` | Binary | Response bytes are base64-encoded into the response message text. |
 
@@ -360,7 +360,7 @@ The HTTP sender editor influences JSON in ways that AI agents should anticipate:
 
 - If `Version < 2`, it forces `TimeoutSeconds = 30` before calling base upgrade.
 
-This aligns with the product’s historical evolution where HTTP sender timeout became adjustable. citeturn6view1
+This aligns with the product’s historical evolution where HTTP sender timeout became adjustable.
 
 ### SwapActivityIds behavior
 
@@ -418,7 +418,7 @@ The sender logs:
 - full payload text (“Sent”)
 - full response text (“Response”)
 
-If you send FHIR/JSON with PHI, or if your payload includes credentials/tokens, those can end up in logs. The FHIR spec explicitly notes that PHI may appear in search parameters and therefore in HTTP logs, and that logs must be treated as sensitive. citeturn6view4 (This concern applies broadly to REST/HTTP integrations.)
+If you send FHIR/JSON with PHI, or if your payload includes credentials/tokens, those can end up in logs. The FHIR spec explicitly notes that PHI may appear in search parameters and therefore in HTTP logs, and that logs must be treated as sensitive. (This concern applies broadly to REST/HTTP integrations.)
 
 ### URL/query-string exposure
 
@@ -440,22 +440,22 @@ Primary sources are prioritized from IntegrationSoup.com and HL7 Interfacer. Lin
 
 ### IntegrationSoup.com
 
-- https://www.integrationsoup.com/WhatsNewInV3.1.html citeturn6view2  
-- https://www.integrationsoup.com/WhatsNewInV3.3.html citeturn6view1  
-- https://www.integrationsoup.com/dicomtutorialsendtorestapi.html citeturn6view3  
-- https://www.integrationsoup.com/HL7TutorialSecuringHL7MessagesWithHTTPOverSSL.html citeturn6view0  
-- https://www.integrationsoup.com/HL7TutorialHTTPPortBinding.html citeturn4search7  
-- https://www.integrationsoup.com/IntegrationHostAWS.html citeturn4search3  
-- https://www.integrationsoup.com/IntegrationHostSSLAWS.html citeturn4search6  
-- https://www.integrationsoup.com/HL7TutorialIntegrationHostWorkflowDesigner.html citeturn0search11  
-- https://www.integrationsoup.com/IntegrationHostGettingStarted.html citeturn3search1  
-- https://www.integrationsoup.com/HL7Tutorials.html citeturn4search4  
+- https://www.integrationsoup.com/WhatsNewInV3.1.html 
+- https://www.integrationsoup.com/WhatsNewInV3.3.html
+- https://www.integrationsoup.com/dicomtutorialsendtorestapi.html 
+- https://www.integrationsoup.com/HL7TutorialSecuringHL7MessagesWithHTTPOverSSL.html  
+- https://www.integrationsoup.com/HL7TutorialHTTPPortBinding.html 
+- https://www.integrationsoup.com/IntegrationHostAWS.html 
+- https://www.integrationsoup.com/IntegrationHostSSLAWS.html
+- https://www.integrationsoup.com/HL7TutorialIntegrationHostWorkflowDesigner.html 
+- https://www.integrationsoup.com/IntegrationHostGettingStarted.html
+- https://www.integrationsoup.com/HL7Tutorials.html 
 
 ### HL7 Interfacer Blog
 
-- https://hl7interfacer.blogspot.com/ citeturn5search2  
-- https://hl7interfacer.blogspot.com/2016/07/mirth-certificateexception-no-name.html citeturn2search0  
+- https://hl7interfacer.blogspot.com/
+- https://hl7interfacer.blogspot.com/2016/07/mirth-certificateexception-no-name.html  
 
 ### Optional authoritative protocol reference
 
-- https://www.hl7.org/fhir/http.html citeturn6view4
+- https://www.hl7.org/fhir/http.html
