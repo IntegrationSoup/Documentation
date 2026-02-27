@@ -142,7 +142,7 @@ Each parameter in the `Parameters` list.
 These patterns are used daily in production HL7 Soup workflows and are fully supported in the visual designer with live connection testing and parameter auto-detection.
 
 ## Additional Resources
-- Official Help: [integrationsoup.com/help/database-sender](https://www.integrationsoup.com/help/database-sender)
+- Official Help: [Send HL7 To a Database With Activities](https://www.integrationsoup.com/hl7tutorialaddpatienttodatabasewithactivities.html)
 - Video Tutorials: Search “HL7 Soup Database Sender” on YouTube (covers binding, responses, and common patterns).
 
 This is the definitive, up-to-date reference for the Database Sender based on the current `DatabaseSenderSetting`.
