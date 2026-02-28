@@ -1,6 +1,6 @@
 # HTTP Sender (HttpSenderSetting)
 
-_Date: 2026-03-01 (Pacific/Auckland). Intended readers: AI agents and developers who author/edit Integration Soup workflow JSON._
+Intended readers: AI agents and developers who author/edit Integration Soup workflow JSON._
 
 ## Executive summary
 
