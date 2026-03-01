@@ -2,47 +2,61 @@
 
 ## What this setting controls
 
-`CodeSenderSetting` defines a custom C# script activity. It runs code inside the workflow, can inspect and modify the current activity message state, and can create workflow variables for later activities.
+`CodeSenderSetting` runs C# script code inside workflow execution.
 
-This document is about the serialized workflow JSON contract and the runtime effects of those fields.
+It controls:
 
-## Operational model
+- the script source code
+- whether a response message object is pre-created
+- response template/type defaults used for that pre-created response
+- variable-name declarations used for designer/binding discoverability
+
+This page documents serialized JSON fields and runtime behavior.
+
+## Runtime model
 
 ```mermaid
 flowchart TD
-    A[Compile Code during prepare] --> B{UseResponse}
-    B -- false --> C[Run script with workflowInstance and activityInstance]
-    B -- true --> D[Create response message object]
-    D --> C
-    C --> E[Script reads/writes messages and variables]
-    E --> F[Optional response becomes activity response]
+    A[Prepare activity] --> B[Compile Code into script delegate]
+    B --> C{UseResponse}
+    C -- false --> D[Run script with workflowInstance + activityInstance]
+    C -- true --> E[Create initial response message object]
+    E --> D
+    D --> F[Script reads/updates messages and variables]
+    F --> G[Response (if present) becomes activity response]
 ```
 
-Important non-obvious points:
+Important non-obvious behavior:
 
-- Compilation happens during prepare, not per message.
-- Script failures during prepare block the activity before normal message processing.
-- Variables set by code are only discoverable in the binding UI if their names are listed in `VariableNames`.
-- `ResponseMessageTemplate` and `ResponseMessageType` affect the initial response object that code sees when `UseResponse = true`.
+- script compilation happens during prepare, not first message send.
+- compile failures block execution before normal message processing.
+- `VariableNames` does not enforce runtime behavior; it is metadata.
+- `ResponseMessageType` materially changes response object initialization when `UseResponse = true`.
 
 ## JSON shape
+
+Typical serialized shape:
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.CodeSenderSetting, HL7SoupWorkflow",
-  "Id": "be167fbf-18d0-468d-a56d-50a676fd1c76",
+  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
   "Name": "Run Custom Logic",
+  "Version": 3,
   "MessageType": 1,
+  "MessageTypeOptions": null,
   "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
-  "ResponseMessageTemplate": "MSH|^~\\&|SRC|FAC|DST|FAC|${ReceivedDate}||ACK^A01|1|P|2.5.1\rMSA|AA|1",
-  "ResponseMessageType": 1,
   "UseResponse": true,
+  "ResponseMessageTemplate": "MSH|^~\\&|SRC|FAC|DST|FAC|${ReceivedDate}||ACK^A01|1|P|2.5.1\\rMSA|AA|1",
+  "ResponseMessageType": 1,
+  "DifferentResponseMessageType": false,
   "Code": "workflowInstance.SetVariable(\"MyVariable\", \"42\");",
   "VariableNames": [
     "MyVariable"
   ],
   "Filters": "00000000-0000-0000-0000-000000000000",
-  "Transformers": "00000000-0000-0000-0000-000000000000"
+  "Transformers": "00000000-0000-0000-0000-000000000000",
+  "Disabled": false
 }
 ```
 
@@ -50,34 +64,36 @@ Important non-obvious points:
 
 ### `Code`
 
-The C# script to compile and execute.
+C# script source compiled and executed by Roslyn scripting engine.
 
-Runtime context exposes:
+Runtime context (`globals`) provides:
 
 - `workflowInstance`
 - `activityInstance`
 
-Important outcomes:
+Additional script conveniences are available through `CodeContext` methods/properties exposed by that globals type.
 
-- Compile errors fail during prepare.
-- Runtime exceptions fail the current workflow instance and return a script-oriented stack trace.
-- The product preloads Integration Soup message references and several common .NET data-access namespaces.
+Runtime outcomes:
+
+- compile errors fail prepare with compile-oriented error text.
+- runtime script exceptions fail current workflow instance and return script stack trace context.
+- common HL7Soup and .NET data access references/imports are preloaded.
 
 ### `VariableNames`
 
-List of variable names that this code activity may create.
+List of variable names this setting declares as potential outputs.
 
 Important outcomes:
 
-- This is primarily declaration metadata for bindings and designer discoverability.
-- Runtime does not enforce this list.
-- If the script sets variables that are not listed here, downstream JSON authors may not see them in the normal binding tree.
+- binding tree/discoverability metadata.
+- not runtime-enforced.
+- missing names here can make script-created variables harder to discover in UI-driven binding.
 
-## Message fields
+## Message and response fields
 
 ### `MessageType`
 
-The current editor allows:
+Editor allows:
 
 - `1` = `HL7`
 - `4` = `XML`
@@ -87,27 +103,43 @@ The current editor allows:
 - `14` = `Binary`
 - `16` = `DICOM`
 
+### `MessageTypeOptions`
+
+Serialized via shared sender infrastructure; used for message creation paths where relevant.
+
 ### `MessageTemplate`
 
-Initial message for the activity.
+Initial activity message source before script runs.
 
 ### `UseResponse`
 
-Controls whether a response message object is created before the script runs.
+Controls whether runtime pre-creates `activityInstance.ResponseMessage` before script execution.
 
 ### `ResponseMessageTemplate`
 
-Template used to create the response object when `UseResponse = true`.
+Template used when pre-creating response object.
+
+Important runtime outcome:
+
+- this template is not automatically variable-processed before creation in this sender path.
 
 ### `ResponseMessageType`
 
-Type of the response message when `UseResponse = true`.
+Controls pre-created response type when `UseResponse = true`.
 
-Important behavior:
+Initialization behavior:
 
-- If `ResponseMessageType` is explicitly set, runtime uses it.
-- If it is `Unknown` and `ResponseMessageTemplate` is blank, runtime falls back to the activity `MessageType`.
-- If it is `Unknown` and `ResponseMessageTemplate` is not blank, runtime attempts to infer the type from the template text.
+- if explicit non-unknown value: use that type.
+- if unknown and template is blank: fallback to activity `MessageType`.
+- if unknown and template is non-blank: infer type from template text.
+
+### `DifferentResponseMessageType`
+
+Serialized inherited field; can appear in JSON.
+
+Practical outcome:
+
+- this sender’s response-object initialization logic is driven by `UseResponse`, `ResponseMessageType`, and `ResponseMessageTemplate`.
 
 ## Workflow linkage fields
 
@@ -119,36 +151,43 @@ GUID of sender filters.
 
 GUID of sender transformers.
 
-These run before the script and shape the activity message the script receives.
-
 ### `Disabled`
 
-If `true`, the activity is disabled.
+If `true`, activity is disabled.
 
 ### `Id`
 
-GUID of this sender setting.
+Activity GUID.
 
 ### `Name`
 
-User-facing name of this sender setting.
+User-facing activity name.
 
-## Defaults for a new `CodeSenderSetting`
+## UI behavior that affects JSON authors
+
+- dialog can auto-extract `VariableNames` by scanning script text for `SetVariable("...")` patterns.
+- this extraction is literal/pattern-based; dynamic or differently formatted variable writes can be missed.
+- response-type advanced fields are not deeply surfaced in UI flow; manual JSON `ResponseMessageType` can be reset to defaults on round-trip save if not re-authored through supported controls.
+
+## Defaults
+
+New `CodeSenderSetting` defaults:
 
 - `UseResponse = false`
 - `VariableNames = []`
-- `Code` starts with a sample script
+- `Code` starts with sample script template
 
 ## Pitfalls and hidden outcomes
 
-- `VariableNames` is discoverability metadata, not enforcement.
-- Leaving `ResponseMessageType` as `Unknown` makes response creation depend on inference.
-- `UseResponse = true` does not guarantee a useful response unless the code actually populates it correctly.
-- The sample code shown in the product is HL7-oriented, but the activity can work with other message types if the script uses the appropriate interfaces.
+- compile-time failures happen before message processing and can stop activity startup.
+- `VariableNames` does not constrain what script can set.
+- `UseResponse = true` does not guarantee useful response content unless script updates it appropriately.
+- leaving `ResponseMessageType` as unknown makes response type inference sensitive to template content.
+- script can compile but still fail at runtime due type-casting assumptions.
 
 ## Examples
 
-### Variable-only code activity with no response object
+### Variable-only script with no pre-created response
 
 ```json
 {
@@ -165,19 +204,19 @@ User-facing name of this sender setting.
 }
 ```
 
-### HL7 response-building script
+### HL7 ACK builder with explicit response type
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.CodeSenderSetting, HL7SoupWorkflow",
   "Id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-  "Name": "Build ACK in Code",
+  "Name": "Build ACK",
   "MessageType": 1,
   "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
   "UseResponse": true,
   "ResponseMessageType": 1,
   "ResponseMessageTemplate": "MSH|^~\\&|SRC|FAC|DST|FAC|${ReceivedDate}||ACK^A01|1|P|2.5.1\\rMSA|AA|1",
-  "Code": "activityInstance.Response.Text = activityInstance.Response.Text;",
+  "Code": "var msg = (IHL7Message)activityInstance.ResponseMessage; msg.SetValueAtPath(\"MSA-1\", \"AA\");",
   "VariableNames": []
 }
 ```

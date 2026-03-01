@@ -2,92 +2,139 @@
 
 ## What this setting controls
 
-`MLLPSenderSetting` defines a TCP sender that frames the outbound message using MLLP, sends it to a remote endpoint, and optionally waits for and captures the response.
+`MLLPSenderSetting` sends framed TCP payloads using MLLP semantics, optionally over TLS, and can optionally read and enforce response behavior.
 
-This document is about the serialized workflow JSON contract and the runtime effects of those fields.
+It controls:
 
-## Operational model
+- host/port destination
+- MLLP frame delimiters
+- connection lifecycle (per-message vs keep-open)
+- TLS usage and optional client certificate
+- timeout
+- response waiting/response strictness
+
+This page documents serialized JSON fields and the runtime behavior they produce.
+
+## Runtime model
 
 ```mermaid
 flowchart TD
-    A[Build outbound payload from MessageTemplate] --> B[Encode text to bytes]
-    B --> C[Wrap bytes in MLLP frame]
-    C --> D[Open TCP or reuse existing TCP connection]
-    D --> E[Optional TLS handshake]
-    E --> F[Send framed data]
-    F --> G{WaitForResponse}
-    G -- false --> H[Finish]
-    G -- true --> I[Read until frame end or socket close]
-    I --> J[Optionally retain response]
+    A[Activity message built from MessageTemplate] --> B[Encode payload text]
+    B --> C[Wrap payload with FrameStart/FrameEnd]
+    C --> D{KeepConnectionOpen}
+    D -- false --> E[Open new TcpClient per send]
+    D -- true --> F[Reuse prepared TcpClient]
+    E --> G{UseSsl}
+    F --> G
+    G -- true --> H[Create SslStream / optional client cert]
+    G -- false --> I[Use NetworkStream]
+    H --> J[Write framed bytes]
+    I --> J
+    J --> K{WaitForResponse}
+    K -- false --> L[No response read]
+    K -- true --> M[Read framed response]
+    M --> N{UseResponse}
+    N -- true and empty --> O[Error]
+    N -- otherwise --> P[Store response message]
 ```
 
-Important non-obvious points:
+Important non-obvious behavior:
 
-- This is still an MLLP sender even when `MessageType` is not HL7.
-- `WaitForResponse` and `UseResponse` are separate settings.
-- `KeepConnectionOpen` materially changes socket lifecycle and throughput behavior.
-- TLS server certificate validation is permissive: invalid certificates generate warnings but are still accepted.
+- TLS server certificate validation is permissive (warnings are logged, connection still proceeds).
+- `UseResponse` does not suppress response capture when `WaitForResponse = true`; it mainly controls strict empty-response failure.
+- Response decoding uses global message encoding path, not the serialized `Encoding` setting.
+- `FrameStart`/`FrameEnd` are runtime-significant and can break interoperability if changed from standard MLLP values.
 
 ## JSON shape
+
+Typical serialized shape:
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.MLLPSenderSetting, HL7SoupWorkflow",
-  "Id": "4c9688d0-a346-453b-8242-70ff96fe1c64",
+  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
   "Name": "Send to HIS",
+  "Version": 3,
   "MessageType": 1,
+  "MessageTypeOptions": null,
   "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
   "ResponseMessageTemplate": "",
+  "ResponseMessageType": 0,
+  "DifferentResponseMessageType": false,
   "Server": "127.0.0.1",
   "Port": 22222,
-  "FrameStart": [11],
-  "FrameEnd": [28, 13],
+  "FrameStart": [
+    "\u000b"
+  ],
+  "FrameEnd": [
+    "\u001c",
+    "\r"
+  ],
   "TimeoutSeconds": 5,
   "UseSsl": false,
   "AuthenticationType": 0,
   "AuthenticationCertificateThumbprint": "",
   "Encoding": "utf-8",
+  "KeepConnectionOpen": false,
   "WaitForResponse": true,
   "UseResponse": false,
-  "KeepConnectionOpen": false,
   "Filters": "00000000-0000-0000-0000-000000000000",
-  "Transformers": "00000000-0000-0000-0000-000000000000"
+  "Transformers": "00000000-0000-0000-0000-000000000000",
+  "Disabled": false
 }
 ```
 
-## Connection fields
+## Connection and framing fields
 
 ### `Server`
 
-Remote host name or IP address.
+Remote host or IP.
 
 ### `Port`
 
 Remote TCP port.
 
+### `FrameStart`
+
+Start frame character sequence.
+
+Standard MLLP default:
+
+```json
+["\u000b"]
+```
+
+### `FrameEnd`
+
+End frame character sequence.
+
+Standard MLLP default:
+
+```json
+["\u001c", "\r"]
+```
+
+Important runtime outcome:
+
+- response framing parser depends on these values.
+
 ### `KeepConnectionOpen`
 
-Controls whether the sender reuses one TCP connection across sends.
+Controls socket lifecycle:
 
-Behavior:
+- `false`: open/close connection per send
+- `true`: prepare one client and reuse
 
-- `false`: open a new connection per send
-- `true`: open once in prepare and keep it for later sends
+Important runtime outcomes:
 
-Important outcomes:
-
-- This can avoid Windows ephemeral-port exhaustion under high throughput.
-- If the remote side closes the connection unexpectedly, later sends can fail until the activity/workflow is recreated.
-
-### `TimeoutSeconds`
-
-Read timeout for waiting on a response.
+- helps avoid socket exhaustion under high throughput.
+- if reused socket is closed by remote side, later sends can fail until activity lifecycle restarts.
 
 ## TLS and authentication fields
 
 ### `UseSsl`
 
-Enables TLS on the socket.
+Enables TLS stream.
 
 ### `AuthenticationType`
 
@@ -97,21 +144,44 @@ JSON enum values:
 - `1` = `Basic`
 - `2` = `Certificate`
 
-Actual runtime meaning:
+Runtime meaning:
 
-- `0`: no client certificate
-- `2`: present a client certificate identified by `AuthenticationCertificateThumbprint`
-- `1`: serialized, but not meaningfully implemented by this sender
+- `2` with thumbprint uses client certificate during TLS auth.
+- `1` serializes but is not meaningfully implemented in this sender path.
 
 ### `AuthenticationCertificateThumbprint`
 
-Thumbprint of the client certificate used when `AuthenticationType = 2`.
+Thumbprint used when `AuthenticationType = 2`.
 
-## Message fields
+Important runtime outcomes:
+
+- certificate must exist in expected store.
+- permission/store access failures can surface as Win32 errors.
+
+## Timeout and encoding fields
+
+### `TimeoutSeconds`
+
+Read timeout base value.
+
+Non-obvious runtime behavior:
+
+- when value is left at `5`, runtime may substitute legacy app-level default timeout values depending on host mode settings.
+
+### `Encoding`
+
+Used for outbound payload encoding.
+
+Important runtime outcomes:
+
+- invalid encoding name causes send failure.
+- response decoding path does not reliably use this field; it follows global message-encoding path.
+
+## Message and response fields
 
 ### `MessageType`
 
-For this sender, the editor allows:
+Editor allows:
 
 - `1` = `HL7`
 - `4` = `XML`
@@ -121,84 +191,62 @@ For this sender, the editor allows:
 - `14` = `Binary`
 - `16` = `DICOM`
 
+### `MessageTypeOptions`
+
+Serialized through shared sender base.
+
+Runtime outcome:
+
+- used when converting captured response text into the activity response message.
+
 ### `MessageTemplate`
 
-Outbound payload template.
-
-### `ResponseMessageTemplate`
-
-Serialized because this activity inherits response support, but it does not determine the actual TCP response. It is primarily design-time metadata.
-
-### `Encoding`
-
-Outbound text encoding name.
-
-Important outcomes:
-
-- If omitted, runtime falls back to UTF-8.
-- Response decoding uses the runtime message-encoding path rather than strictly this serialized field alone.
-
-## Response fields
+Outbound payload source.
 
 ### `WaitForResponse`
 
-Controls whether the sender waits for a remote response.
+Whether to read a response from remote side.
 
 ### `UseResponse`
 
-Controls whether the returned response must be meaningful workflow data.
+Response strictness flag used by sender logic.
 
-Important outcome:
+Practical behavior matrix:
 
-- If `UseResponse = true` and the remote side responds with an empty message or closes without a response, the activity errors.
+- `WaitForResponse = false`, `UseResponse = false`: no response read.
+- `WaitForResponse = true`, `UseResponse = false`: response is read and still stored if present.
+- `WaitForResponse = true`, `UseResponse = true`: response is read, stored, and empty response becomes error.
+- `WaitForResponse = false`, `UseResponse = true`: inconsistent JSON state; sender does not read response because `WaitForResponse` gates response read.
 
-## Advanced framing fields
+### `ResponseMessageTemplate`
 
-These fields serialize and are honored by runtime, but are effectively advanced JSON-level settings.
+Serialized inherited field, primarily design-time.
 
-### `FrameStart`
+Runtime outcome:
 
-Default:
+- does not shape the socket response.
 
-```json
-[11]
-```
+### `ResponseMessageType` and `DifferentResponseMessageType`
 
-### `FrameEnd`
+Serialized inherited fields.
 
-Default:
+Runtime outcome in this sender:
 
-```json
-[28, 13]
-```
+- response conversion uses `MessageType`, not `ResponseMessageType`.
 
-Important outcome:
+## UI behavior that affects JSON authors
 
-- These affect both send framing and response parsing.
+- UI exposes three response modes:
+  - do not wait
+  - wait only
+  - wait and require usable response
+- UI exposes certificate authentication only as none/certificate; basic auth mode is not practical from dialog.
+- Encoding fallback in save path has a typo (`uft-8`) if encoding is blank; this can create invalid JSON values.
+- Advanced inherited response-type fields are not the practical control path and can round-trip to defaults.
 
-## Workflow linkage fields
+## Defaults
 
-### `Filters`
-
-GUID of sender filters.
-
-### `Transformers`
-
-GUID of sender transformers.
-
-### `Disabled`
-
-If `true`, the activity is disabled.
-
-### `Id`
-
-GUID of this sender setting.
-
-### `Name`
-
-User-facing name of this sender setting.
-
-## Defaults for a new `MLLPSenderSetting`
+New `MLLPSenderSetting` defaults:
 
 - `Server = "127.0.0.1"`
 - `Port = 22222`
@@ -212,14 +260,15 @@ User-facing name of this sender setting.
 ## Pitfalls and hidden outcomes
 
 - `AuthenticationType = 1` (`Basic`) serializes but is not meaningfully implemented.
-- TLS certificate validation is permissive.
-- `WaitForResponse = false` is usually wrong for normal HL7 interoperability.
-- `UseResponse = true` turns empty responses into workflow errors.
-- `ResponseMessageTemplate` serializes but does not control the actual socket response.
+- TLS certificate validation does not enforce strict trust.
+- Changing `FrameStart`/`FrameEnd` away from standard MLLP breaks compatibility unless both ends agree.
+- `UseResponse` does not mean “store vs do not store”; `WaitForResponse` is the primary read gate.
+- Empty response errors occur only when both wait and strict-use mode are enabled.
+- Keep-open sockets can become stale if remote side drops connections.
 
 ## Examples
 
-### Standard HL7 send expecting ACK
+### Standard HL7 send expecting ACK content
 
 ```json
 {
@@ -235,7 +284,7 @@ User-facing name of this sender setting.
 }
 ```
 
-### TLS MLLP send with client certificate
+### TLS send with client certificate and standard framing
 
 ```json
 {
@@ -247,6 +296,13 @@ User-facing name of this sender setting.
   "UseSsl": true,
   "AuthenticationType": 2,
   "AuthenticationCertificateThumbprint": "0123456789ABCDEF0123456789ABCDEF01234567",
+  "FrameStart": [
+    "\u000b"
+  ],
+  "FrameEnd": [
+    "\u001c",
+    "\r"
+  ],
   "MessageType": 1,
   "MessageTemplate": "MSH|^~\\&|...\\rPID|...\\r",
   "WaitForResponse": true

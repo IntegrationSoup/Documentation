@@ -2,48 +2,61 @@
 
 ## What this setting controls
 
-`HttpSenderSetting` defines an outbound HTTP or HTTPS request. It sends the activity message to a URL, optionally adds authentication, client certificates, proxy settings, and custom headers, and optionally captures the HTTP response body as the activity response.
+`HttpSenderSetting` sends the activity message to an HTTP/HTTPS endpoint using `POST`, `GET`, `PUT`, or `DELETE`.
 
-This document is about the serialized workflow JSON contract and the runtime effects of those fields.
+It also controls:
 
-## Operational model
+- authentication credentials
+- client certificate use
+- proxy mode
+- request timeout
+- custom request headers
+- whether the response body is retained as the activity response
+
+This page documents serialized JSON fields and the runtime behavior they cause.
+
+## Runtime model
 
 ```mermaid
 flowchart TD
-    A[Build outbound payload from MessageTemplate] --> B[Resolve Server variables]
+    A[Activity message built from MessageTemplate] --> B[Resolve Server variables]
     B --> C[Create WebClient]
-    C --> D[Apply proxy, auth, certificate, timeout]
+    C --> D[Apply timeout, cert, auth, proxy]
     D --> E[Add Content-Type and custom headers]
     E --> F{Method}
-    F -- GET --> G[OpenRead with no request body]
-    F -- POST/PUT/DELETE --> H[Encode payload and UploadData]
-    G --> I[Read response bytes]
+    F -- GET --> G[OpenRead URL]
+    F -- POST/PUT/DELETE --> H[UploadData with encoded body]
+    G --> I[Read response body]
     H --> I
-    I --> J[Convert response to text or base64]
-    J --> K{WaitForResponse}
-    K -- true --> L[Store activity response]
-    K -- false --> M[Leave response empty]
+    I --> J{WaitForResponse}
+    J -- true --> K[Convert to FunctionMessage]
+    J -- false --> L[Discard body for workflow response]
 ```
 
-Important non-obvious points:
+Important non-obvious behavior:
 
-- `WaitForResponse` controls whether the response body is retained for workflow use, not whether the HTTP call itself is synchronous.
-- `GET` does not send the activity payload at all, even if `MessageTemplate` is populated.
-- For `Binary`, the response body is converted to base64 text before it becomes the activity response.
-- For non-binary responses, bytes are decoded with `Encoding`, not by inspecting the server's charset header.
+- `WaitForResponse` controls response retention, not whether the HTTP call blocks.
+- The sender still receives and reads the HTTP response even when `WaitForResponse = false`.
+- `GET` never sends `MessageTemplate` as a request body.
+- For non-GET methods, body bytes are always created from message text using `Encoding`.
+- Response conversion uses `MessageType` and `MessageTypeOptions`, not `ResponseMessageType`.
 
 ## JSON shape
 
-Typical object shape:
+Typical serialized shape:
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.HttpSenderSetting, HL7SoupWorkflow",
-  "Id": "4e7b3753-8762-46a8-9f32-14676cd1453d",
+  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
   "Name": "Post Patient JSON",
+  "Version": 3,
   "MessageType": 11,
+  "MessageTypeOptions": null,
   "MessageTemplate": "{ \"patientId\": \"${PatientId}\" }",
-  "ResponseMessageTemplate": "{ \"status\": \"ok\" }",
+  "ResponseMessageTemplate": "",
+  "ResponseMessageType": 0,
+  "DifferentResponseMessageType": false,
   "Server": "https://api.example.com/patients/${PatientId}",
   "Method": 0,
   "ContentType": "application/json",
@@ -57,33 +70,30 @@ Typical object shape:
   "ProxyAddress": "",
   "ProxyUserName": "",
   "ProxyPassword": "",
-  "TimeoutSeconds": 30,
   "UseDefaultCredentials": false,
+  "TimeoutSeconds": 30,
+  "Encoding": "utf-8",
   "Headers": [
     {
       "Name": "X-Correlation-Id",
       "Value": "${WorkflowInstanceId}",
-      "FromType": 8,
-      "FromDirection": 2
+      "FromType": 7,
+      "FromDirection": 2,
+      "FromSetting": "00000000-0000-0000-0000-000000000000"
     }
   ],
-  "Encoding": "utf-8",
   "WaitForResponse": true,
   "Filters": "00000000-0000-0000-0000-000000000000",
-  "Transformers": "00000000-0000-0000-0000-000000000000"
+  "Transformers": "00000000-0000-0000-0000-000000000000",
+  "Disabled": false
 }
 ```
 
-## Target and request fields
+## Method and endpoint fields
 
 ### `Server`
 
-Target URL.
-
-Behavior:
-
-- Variables are processed at runtime.
-- The editor allows binding/variable insertion here.
+Target URL. Variables are resolved at runtime.
 
 ### `Method`
 
@@ -94,49 +104,53 @@ JSON enum values:
 - `2` = `PUT`
 - `3` = `DELETE`
 
-Important outcomes:
+Runtime outcomes:
 
-- `GET` does not send a request body.
-- `DELETE` in this sender still uses the upload path and can send a body.
-- The editor hides the outbound message editor and content-type controls when `GET` is selected, but those serialized fields can still remain in JSON.
+- `GET` uses `OpenRead` and sends no body.
+- `POST`, `PUT`, and `DELETE` use upload-body path.
+- `DELETE` can still send a request body in this sender.
 
 ### `ContentType`
 
-Value sent as the HTTP `Content-Type` header.
+Added to request headers as `Content-Type`.
 
 Important outcome:
 
-- It is always added to the request headers by runtime, even if it is not meaningful for the chosen method.
+- this header is added regardless of method.
 
-## Authentication and transport fields
+## Authentication and certificate fields
 
 ### `Authentication`
 
-Enables username/password credentials on the request.
+Enables username/password credentials.
 
 ### `UserName`
 
-Username used when `Authentication = true`.
+Username when `Authentication = true`.
 
 ### `Password`
 
-Password used when `Authentication = true`.
+Password when `Authentication = true`.
 
 ### `UseAuthenticationCertificate`
 
-Attach a client certificate to the request.
+Whether to attach a client certificate.
 
 ### `AuthenticationCertificateThumbprint`
 
-Client certificate thumbprint used when `UseAuthenticationCertificate = true`.
+Thumbprint used when `UseAuthenticationCertificate = true`.
+
+Important runtime outcome:
+
+- certificate lookup requires machine store availability; missing certificates fail the request.
 
 ### `PreAuthenticate`
 
-Controls whether credentials are sent eagerly on later requests.
+Controls eager credential behavior in underlying HTTP stack.
 
 ### `UseDefaultCredentials`
 
-Use the process/default credentials if the server requests them.
+Enables process/default credentials if requested by server.
 
 ## Proxy fields
 
@@ -150,7 +164,7 @@ JSON enum values:
 
 ### `ProxyAddress`
 
-Proxy URL when `UseProxy = 1`.
+Manual proxy URL when `UseProxy = 1`.
 
 ### `ProxyUserName`
 
@@ -164,44 +178,25 @@ Manual proxy password when `UseProxy = 1`.
 
 ### `Headers`
 
-Serialized as a list of `DatabaseSettingParameter` objects.
+Serialized as `DatabaseSettingParameter[]`.
 
-For HTTP headers, the fields that matter are:
+Fields that matter at HTTP runtime:
 
 - `Name`
 - `Value`
-- `FromType`
 - `FromDirection`
 - `FromSetting`
 
-Typical header object:
+Design-time fields that serialize for binding/editor compatibility:
 
-```json
-{
-  "Name": "Authorization",
-  "Value": "Bearer ${AccessToken}",
-  "FromType": 8,
-  "FromDirection": 2
-}
-```
+- `FromType`
+- formatting fields (`Encoding`, `Format`, `TextFormat`, `Truncation`, `Lookup`, and related fields)
 
-Important outcomes:
+Important runtime outcome:
 
-- Runtime only uses `Name`, `Value`, `FromDirection`, and `FromSetting` when building the header value. The extra formatting fields from `DatabaseSettingParameter` are not part of the HTTP-header runtime path.
-- The editor still stores `FromType` and uses it for binding correctness and repair when reopening the activity.
-- Headers are sorted by parameter name when saved from the editor.
+- header value extraction uses the binding source and value expression path, not the formatting subset used by database parameters.
 
-### `FromType` inside header objects
-
-For this setting, the useful JSON enum values are:
-
-- `8` = `TextWithVariables`
-- `9` = `HL7V2Path`
-- `10` = `XPath`
-- `11` = `CSVPath`
-- `12` = `JSONPath`
-
-### `FromDirection` inside header objects
+### `FromDirection` (inside `Headers`)
 
 JSON enum values:
 
@@ -209,13 +204,21 @@ JSON enum values:
 - `1` = `outbound`
 - `2` = `variable`
 
-## Message fields
+### `FromType` (inside `Headers`)
+
+Useful JSON enum values:
+
+- `7` = `TextWithVariables`
+- `8` = `HL7V2Path`
+- `9` = `XPath`
+- `10` = `CSVPath`
+- `12` = `JSONPath`
+
+## Message and response fields
 
 ### `MessageType`
 
-Defines how the activity message and any retained response are interpreted inside Integration Soup.
-
-For `HttpSenderSetting`, the editor allows:
+For this sender, the editor allows:
 
 - `1` = `HL7`
 - `4` = `XML`
@@ -225,100 +228,118 @@ For `HttpSenderSetting`, the editor allows:
 - `14` = `Binary`
 - `16` = `DICOM`
 
+Runtime outcome:
+
+- response body is converted into this message type when retained.
+
+### `MessageTypeOptions`
+
+Serialized through shared sender infrastructure.
+
+Runtime outcome:
+
+- applied when retained response body is converted into a function message.
+
+UI outcome:
+
+- this sender UI does not provide a dedicated editor for complex message-type options.
+- advanced JSON options can be lost on round-trip save.
+
 ### `MessageTemplate`
 
-Outbound request body template.
+Request body template source for non-GET methods.
 
 Important outcome:
 
-- When `Method = GET`, this serialized field is not sent.
+- ignored for `GET`.
+
+### `WaitForResponse`
+
+Controls whether response body is kept in the activity response.
+
+Behavior:
+
+- `true`: retain response body
+- `false`: do not retain response body
+
+Important runtime outcome:
+
+- sender still performs the HTTP request and reads the HTTP response path before deciding retention.
 
 ### `ResponseMessageTemplate`
 
-Serialized because this activity inherits sender response support, but it does not control the actual HTTP response. It mainly exists for design-time bindings/highlighting.
+Serialized due shared sender-with-response base.
+
+Runtime outcome:
+
+- does not control actual HTTP response content.
+
+### `ResponseMessageType` and `DifferentResponseMessageType`
+
+Serialized inherited fields that can appear in JSON.
+
+Runtime outcome in this sender:
+
+- response conversion uses `MessageType`, not `ResponseMessageType`.
+
+UI outcome:
+
+- these are not materially authored in HTTP sender dialog and may round-trip to defaults.
 
 ## Encoding and timeout fields
 
 ### `Encoding`
 
-Name of the text encoding used for request-body conversion and non-binary response decoding.
+Encoding name used for request body bytes and most text response decoding.
 
-Important outcomes:
+Important runtime outcomes:
 
-- The editor limits normal selection to a small preferred list.
-- If omitted or invalid, runtime falls back to UTF-8.
-- Response decoding does not inspect the server's declared charset; it uses this setting.
+- invalid encoding name causes runtime error.
+- for `GET` text response, decoding path uses stream-reader defaults rather than this setting.
+- for non-GET text responses, decoding uses this setting.
 
 ### `TimeoutSeconds`
 
-HTTP timeout in seconds.
+HTTP request timeout in seconds.
 
-## Response retention field
+## UI behavior that affects JSON authors
 
-### `WaitForResponse`
+- Selecting `GET` hides body/template and content-type controls, but those fields can still exist in JSON.
+- Headers are saved in sorted order by name.
+- Connection test uses an HTTP `HEAD` call and applies current auth/proxy/certificate settings.
+- If encoding text is cleared in the dialog, save path has a typo fallback (`uft-8`) which is not a valid encoding and can break runtime if persisted.
+- Advanced inherited response fields (`ResponseMessageType`, `DifferentResponseMessageType`) are not the practical control path for this sender.
 
-Controls whether the response body is kept as the activity response message.
+## Defaults
 
-Behavior:
-
-- `true`: capture the response body
-- `false`: perform the request, but leave the activity response empty
-
-Important outcome:
-
-- The request still waits for the HTTP server to respond. This is not asynchronous/fire-and-forget transport.
-
-## Workflow linkage fields
-
-### `Filters`
-
-GUID of sender filters.
-
-### `Transformers`
-
-GUID of sender transformers.
-
-These shape the outbound message before the HTTP call.
-
-### `Disabled`
-
-If `true`, the activity is disabled.
-
-### `Id`
-
-GUID of this sender setting.
-
-### `Name`
-
-User-facing name of this sender setting.
-
-## Defaults for a new `HttpSenderSetting`
+New `HttpSenderSetting` defaults:
 
 - `ContentType = "text/plain"`
-- `Method = 0`
+- `Method = 0` (`POST`)
 - `TimeoutSeconds = 30`
-- `UseProxy = 0`
+- `UseProxy = 0` (`UseDefaultProxy`)
 - `WaitForResponse = true`
 
 ## Pitfalls and hidden outcomes
 
-- `WaitForResponse = false` does not make the HTTP call asynchronous.
-- `GET` ignores `MessageTemplate`.
-- `DELETE` can still carry a body in this sender.
-- Non-binary responses are decoded with `Encoding`, not the server's charset header.
-- Header objects serialize like database parameters, but most of the database-formatting fields are not used by the HTTP sender runtime.
-- `ResponseMessageTemplate` serializes but does not drive the actual HTTP response body.
+- `WaitForResponse = false` is not fire-and-forget.
+- `GET` ignores message body template.
+- `Binary` mode is not raw-binary-safe for outbound body. Request body still comes from text encoding path.
+- `ResponseMessageTemplate` does not shape the HTTP response.
+- `ResponseMessageType` can serialize but is not the runtime response conversion selector in this sender.
+- Manual message-type options can be overwritten by UI round-trip.
+- Certain restricted header names can fail when added via WebClient header APIs.
 
 ## Examples
 
-### JSON POST with custom header and response retention
+### JSON `POST` with retained response
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.HttpSenderSetting, HL7SoupWorkflow",
   "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
   "Name": "Send JSON API",
-  "Method": 1,
+  "Method": 0,
   "Server": "https://api.example.com/patient",
   "ContentType": "application/json",
   "MessageType": 11,
@@ -327,7 +348,7 @@ User-facing name of this sender setting.
     {
       "Name": "X-Correlation-Id",
       "Value": "${CorrelationId}",
-      "FromType": 8,
+      "FromType": 7,
       "FromDirection": 2
     }
   ],
@@ -335,18 +356,34 @@ User-facing name of this sender setting.
 }
 ```
 
-### GET request where message template is ignored
+### `GET` request (template present but not sent)
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.HttpSenderSetting, HL7SoupWorkflow",
   "Id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
   "Name": "Fetch Patient",
-  "Method": 0,
+  "Method": 1,
   "Server": "https://api.example.com/patient/${PatientId}",
   "MessageType": 11,
   "MessageTemplate": "{ \"ignored\": true }",
   "WaitForResponse": true
+}
+```
+
+### One-way retention mode (`WaitForResponse = false`)
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.HttpSenderSetting, HL7SoupWorkflow",
+  "Id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+  "Name": "Notify Endpoint",
+  "Method": 0,
+  "Server": "https://api.example.com/notify",
+  "ContentType": "application/json",
+  "MessageType": 13,
+  "MessageTemplate": "{ \"event\": \"complete\" }",
+  "WaitForResponse": false
 }
 ```
 

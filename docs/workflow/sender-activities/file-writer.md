@@ -2,102 +2,110 @@
 
 ## What this setting controls
 
-`FileWriterSenderSetting` writes the activity message to disk. It can append multiple messages to the same file, optionally add CSV/Text headers, and optionally move completed files into another directory when rotation conditions are met.
+`FileWriterSenderSetting` writes the activity message to disk.
 
-This document is about the serialized workflow JSON contract and the runtime effects of those fields.
+It supports:
 
-## Operational model
+- writing to a resolved file path
+- optional multi-record file grouping
+- optional move/rotation into a target directory
+- optional CSV/Text header writes
+- binary and DICOM byte-write paths
+
+This page documents serialized JSON fields and the runtime behavior they produce.
+
+## Runtime model
 
 ```mermaid
 flowchart TD
-    A[Build outbound text or binary content from MessageTemplate] --> B[Resolve FilePathToWrite]
+    A[Activity message built from MessageTemplate] --> B[Resolve FilePathToWrite]
     B --> C[Ensure output directory exists]
-    C --> D[Write bytes or append text]
-    D --> E[Optional add CSV/Text header on first write]
-    E --> F{Rotate or move condition met?}
-    F -- no --> G[Keep current file]
-    F -- yes --> H[Move file to DirectoryToMoveInto]
+    C --> D{MessageType / object type}
+    D -- Binary --> E[Base64 decode and WriteAllBytes]
+    D -- DicomMessage object --> F[Write raw DICOM bytes]
+    D -- Text modes --> G[Optional header write then append text]
+    E --> H{Rotate or move condition}
+    F --> H
+    G --> H
+    H -- threshold/path-change/close --> I[Move file to DirectoryToMoveInto]
+    H -- none --> J[Keep writing current file]
 ```
 
-Important non-obvious points:
+Important non-obvious behavior:
 
-- `MaxRecordsPerFile` only matters when `MoveIntoDirectoryOnComplete = true`.
-- If move is disabled, the sender keeps appending to the same resolved file path.
-- A runtime change in `FilePathToWrite` also forces a move of the prior file when move is enabled.
-- DICOM messages are written as raw DICOM bytes even though this is a generic file writer.
+- `MaxRecordsPerFile` only causes practical rotation when move mode is enabled.
+- Binary and DICOM write paths overwrite file bytes; they do not append.
+- If resolved output file path changes between messages, previous file is moved immediately in move mode.
+- Header rows are written only when file does not yet exist.
 
 ## JSON shape
+
+Typical serialized shape:
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.FileWriterSenderSetting, HL7SoupWorkflow",
-  "Id": "4e79a1be-2b77-430f-858c-aa74d2db00b7",
-  "Name": "Write HL7 File",
+  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "Name": "Write HL7 Batch",
+  "Version": 3,
   "MessageType": 1,
-  "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
   "MessageTypeOptions": null,
-  "FilePathToWrite": "C:\\Output\\${WorkflowInstanceId}.hl7",
+  "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
+  "FilePathToWrite": "c:\\temp\\out\\batch.hl7",
   "MoveIntoDirectoryOnComplete": true,
-  "DirectoryToMoveInto": "C:\\Archive\\HL7",
-  "MaxRecordsPerFile": 1,
+  "DirectoryToMoveInto": "c:\\temp\\processed",
+  "MaxRecordsPerFile": 1000,
   "Filters": "00000000-0000-0000-0000-000000000000",
-  "Transformers": "00000000-0000-0000-0000-000000000000"
+  "Transformers": "00000000-0000-0000-0000-000000000000",
+  "Disabled": false
 }
 ```
 
-## Core file-path fields
+## File-path and rotation fields
 
 ### `FilePathToWrite`
 
-Full file path, including file name.
+Resolved output file path (including file name).
 
-Behavior:
+Runtime behavior:
 
-- Variables are processed at runtime.
-- The writer ensures the parent directory exists.
-
-Important outcomes:
-
-- The editor warns if this looks like a directory path rather than a file.
-- If this value changes between messages because of variables, the previous file is moved immediately when move mode is enabled.
+- variables are resolved per message.
+- parent directory is created if missing.
 
 ### `MoveIntoDirectoryOnComplete`
 
-Enables file rotation and move behavior.
+Enables move/rotation behavior.
 
-When `true`, the current file is moved when:
+When `true`, file move is triggered by:
 
-- `MaxRecordsPerFile` is reached
-- the resolved output file path changes
-- the workflow/activity closes
+- reaching `MaxRecordsPerFile`
+- resolved output file path changing between messages
+- activity close
 
 ### `DirectoryToMoveInto`
 
 Target directory for moved files.
 
-Behavior:
+Runtime behavior:
 
-- Variables are processed at runtime.
-- The directory is created if it does not exist.
-
-Important outcome:
-
-- The writer only moves into a directory, not into an arbitrary file name. The moved file keeps its own file name and is made unique if needed.
+- resolved per message
+- directory is created if missing
+- destination filename is made unique if needed
 
 ### `MaxRecordsPerFile`
 
-Maximum number of messages written to a file before a move or rotation.
+Record count threshold before move/rotation.
 
 Critical behavior:
 
-- This only has practical effect when `MoveIntoDirectoryOnComplete = true`.
-- If move is false, the sender continues appending to the current file regardless of this number.
+- meaningful only with `MoveIntoDirectoryOnComplete = true`
+- with move disabled, sender keeps appending or overwriting same path behavior based on write mode
 
 ## Message fields
 
 ### `MessageType`
 
-The editor allows:
+Editor allows:
 
 - `1` = `HL7`
 - `4` = `XML`
@@ -107,57 +115,40 @@ The editor allows:
 - `14` = `Binary`
 - `16` = `DICOM`
 
-Important outcomes:
+Runtime write modes:
 
-- `Binary` expects the activity message text to be base64 and writes decoded bytes.
-- If the runtime message object is a DICOM message, the writer uses its raw DICOM bytes directly.
-- For non-binary text modes, content is appended as text using the product's shared encoding.
+- `Binary`: decode text as base64 and write bytes.
+- runtime `DicomMessage` object: write raw DICOM bytes directly.
+- other message types: append text using global encoding.
 
 ### `MessageTemplate`
 
-Content template to write.
+Activity message source before write.
 
 ### `MessageTypeOptions`
 
-Relevant mainly for `CSV` and `Text`.
+Most relevant for:
 
-For this sender, the meaningful serialized use is the header.
+- `CSVMessageTypeOption.Header`
+- `TextMessageTypeOption.Header`
 
-#### CSV example
+Runtime behavior:
 
-```json
-{
-  "$type": "HL7Soup.Workflow.MessageTypeOptions.CSVMessageTypeOption, HL7SoupWorkflow",
-  "Header": "PatientId,LastName,FirstName"
-}
-```
+- header written once only when target file does not already exist.
 
-#### Text example
-
-```json
-{
-  "$type": "HL7Soup.Workflow.MessageTypeOptions.TextMessageTypeOption, HL7SoupWorkflow",
-  "Header": "Batch Start"
-}
-```
-
-Important outcome:
-
-- The header is written only if the target file does not already exist.
-
-## Text-write behavior that matters
+## Text write details
 
 ### HL7 newline behavior
 
-For `HL7`, a newline is only appended when `MaxRecordsPerFile > 1`.
+For `HL7` text writes, newline is appended only when `MaxRecordsPerFile > 1`.
 
 ### Other text message types
 
-For non-HL7 text-based message types, runtime appends `Environment.NewLine` after each message.
+For non-HL7 text types, newline is appended after each written message.
 
-### Write retry behavior
+### Retry behavior
 
-If appending text throws an `IOException`, the sender waits briefly and retries once.
+If text append throws `IOException`, sender waits briefly and retries once.
 
 ## Workflow linkage fields
 
@@ -171,17 +162,26 @@ GUID of sender transformers.
 
 ### `Disabled`
 
-If `true`, the activity is disabled.
+Disables activity execution when `true`.
 
 ### `Id`
 
-GUID of this sender setting.
+Activity GUID.
 
 ### `Name`
 
-User-facing name of this sender setting.
+User-facing activity name.
 
-## Defaults for a new `FileWriterSenderSetting`
+## UI behavior that affects JSON authors
+
+- UI validates `MaxRecordsPerFile > 0`.
+- UI warns when file path appears to be a directory-only path.
+- Header editor is shown only for `CSV` and `Text`.
+- On save, `MessageTypeOptions` is actively authored for CSV/Text header mode and otherwise tends to round-trip as null/default for this sender.
+
+## Defaults
+
+New `FileWriterSenderSetting` defaults:
 
 - `FilePathToWrite = ""`
 - `MaxRecordsPerFile = 5000`
@@ -190,11 +190,11 @@ User-facing name of this sender setting.
 
 ## Pitfalls and hidden outcomes
 
-- `MaxRecordsPerFile` does not rotate files unless move mode is enabled.
-- A variable-driven file-path change causes the previous file to be moved immediately in move mode.
-- `Binary` expects base64 text.
-- DICOM messages are written as raw bytes through a special runtime path.
-- `DirectoryToMoveInto` must be treated as a directory, not as a full destination file path.
+- `MaxRecordsPerFile` does not rotate files unless move mode is on.
+- Binary writes overwrite file bytes; they do not append binary records.
+- DICOM object writes also overwrite file bytes in current implementation.
+- `DirectoryToMoveInto` is treated as directory creation target; passing a file-like path creates a directory with that name.
+- Path changes caused by variables can trigger unexpected early file moves.
 
 ## Examples
 
@@ -214,12 +214,32 @@ User-facing name of this sender setting.
 }
 ```
 
-### Binary file write from base64 content
+### CSV output with header and rotation
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.FileWriterSenderSetting, HL7SoupWorkflow",
   "Id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "Name": "Write CSV Export",
+  "FilePathToWrite": "c:\\temp\\out\\export.csv",
+  "MessageType": 5,
+  "MessageTypeOptions": {
+    "$type": "HL7Soup.Workflow.MessageTypeOptions.CSVMessageTypeOption, HL7SoupWorkflow",
+    "Header": "PatientId,LastName,FirstName"
+  },
+  "MessageTemplate": "${22222222-2222-2222-2222-222222222222 outbound}",
+  "MoveIntoDirectoryOnComplete": true,
+  "DirectoryToMoveInto": "c:\\temp\\archive",
+  "MaxRecordsPerFile": 5000
+}
+```
+
+### Binary write from base64 text payload
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.FileWriterSenderSetting, HL7SoupWorkflow",
+  "Id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
   "Name": "Write PDF Bytes",
   "FilePathToWrite": "c:\\temp\\out\\result.pdf",
   "MessageType": 14,
