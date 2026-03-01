@@ -6,6 +6,7 @@ This section covers how to build workflows in Integration Soup Integration Host.
 - [Paths](paths.md)
 - [Paths For AI](reference/pathsforai.md)
 - [Paths Detailed](reference/pathsindepth.md)
+- [AI Workflow Docs](ai/index.md)
 - [Workflow Enum and Interface Reference](reference/workflow-enums-and-interfaces.md)
 - [Filter Host (FilterHostSetting)](reference/filter-host-setting.md)
 - [Transformer Setting (TransformerSetting)](reference/transformer-setting.md)
