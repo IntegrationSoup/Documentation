@@ -19,6 +19,12 @@ Assumptions and limits of this guide:
 - **MessageTypes numeric values** (e.g., CSV, SQL) are not fully defined in the provided code. Relevant numeric values are listed; unused are explicitly marked **unspecified**.
 - The guide focuses on **JSON-level serialized properties** that are created and persisted by the Database Receiver editor and used by runtime execution.
 
+## Shared reference
+
+For canonical enum numeric mappings used across workflow JSON, see [Workflow Enum and Interface Reference](../reference/workflow-enums-and-interfaces.md).
+
+For Integrations code API interface contracts used by custom code, see [IMessage in Integration Soup](../api/imessage.md).
+
 ## Serialized JSON contract
 
 ### Canonical JSON shape for DatabaseReceiverSetting

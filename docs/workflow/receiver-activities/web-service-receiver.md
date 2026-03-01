@@ -17,6 +17,12 @@ This setting combines:
 
 Only serialized workflow JSON fields are covered.
 
+## Shared reference
+
+For canonical enum numeric mappings used across workflow JSON, see [Workflow Enum and Interface Reference](../reference/workflow-enums-and-interfaces.md).
+
+For Integrations code API interface contracts used by custom code, see [IMessage in Integration Soup](../api/imessage.md).
+
 ## Operational model
 
 ```mermaid

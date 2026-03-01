@@ -8,6 +8,12 @@ This page is about the serialized workflow JSON contract and the actual runtime 
 
 Only serialized properties are covered.
 
+## Shared reference
+
+For canonical enum numeric mappings used across workflow JSON, see [Workflow Enum and Interface Reference](../reference/workflow-enums-and-interfaces.md).
+
+For Integrations code API interface contracts used by custom code, see [IMessage in Integration Soup](../api/imessage.md).
+
 ## What this activity really is
 
 This activity is not a generic HTTP sender and it is not a generic XML sender.

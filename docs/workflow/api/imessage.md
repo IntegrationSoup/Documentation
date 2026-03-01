@@ -5,6 +5,8 @@
 
 If you are writing Code Transformers or Custom Activities, this is the lowest-level API that always exists.
 
+For canonical workflow JSON enum mappings used by sender/receiver settings, see [Workflow Enum and Interface Reference](../reference/workflow-enums-and-interfaces.md).
+
 ---
 
 ## Interface contract

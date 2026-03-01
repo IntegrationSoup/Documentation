@@ -7,6 +7,12 @@ When a response is enabled, only the first row of the first result set is return
 
 This page documents serialized JSON fields and their runtime impact.
 
+## Shared reference
+
+For canonical enum numeric mappings used across workflow JSON, see [Workflow Enum and Interface Reference](../reference/workflow-enums-and-interfaces.md).
+
+For Integrations code API interface contracts used by custom code, see [IMessage in Integration Soup](../api/imessage.md).
+
 ## Operational model
 
 ```mermaid

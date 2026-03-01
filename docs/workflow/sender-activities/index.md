@@ -2,6 +2,7 @@
 
 Sender activities send outbound data (e.g., TCP/MLLP HL7, database, files, etc.).
 
+- [Shared Enum and Interface Reference](../reference/workflow-enums-and-interfaces.md)
 - [File Writer](file-writer.md)
 - [Database Query](database-query.md)
 - [HTTP Sender](http-sender.md)
