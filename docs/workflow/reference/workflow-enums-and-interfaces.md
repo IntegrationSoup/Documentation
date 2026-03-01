@@ -149,6 +149,10 @@ Interface-level guides:
 - [IWorkflowInstance and IActivityInstance Guide](../api/workflowinstance.md)
 - [CodeContext Guide](../api/codingcontext.md)
 
+Workflow JSON root object guide:
+
+- [WorkflowFile in Integration Soup](../api/workflowfile.md)
+
 ## Authoring pitfalls to avoid
 
 - Do not use `MessageType` values in `FromType` fields.
