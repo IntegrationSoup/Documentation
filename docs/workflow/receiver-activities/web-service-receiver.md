@@ -468,7 +468,7 @@ Do not expect this to protect a plain HTTP endpoint.
 - Manual JSON for advanced response modes such as `ReturnResponseFromActivity` can be lost when the setting is reopened and saved in the UI.
 - Legacy certificate fields still serialize but are not the practical fields to author for current behavior.
 
-## Minimal examples
+## Examples
 
 ### Minimal SOAP 1.1 XML receiver
 

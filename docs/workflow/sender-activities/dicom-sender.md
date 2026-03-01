@@ -144,6 +144,25 @@ User-facing name of this sender setting.
 - The success response is text.
 - `TimeoutSeconds` serializes but is not clearly enforced by the current runtime path.
 
+## Examples
+
+### Basic DICOM C-STORE sender
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.DicomSenderSetting, HL7SoupWorkflow",
+  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "Name": "Send to PACS",
+  "MessageType": 16,
+  "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
+  "RemoteHost": "10.0.0.25",
+  "RemotePort": 104,
+  "OurAET": "HL7SOUP_SCU",
+  "RemoteAET": "ANY_SCP",
+  "TimeoutSeconds": 30
+}
+```
+
 ## Useful public references
 
 - [Integration Soup](https://www.integrationsoup.com/)

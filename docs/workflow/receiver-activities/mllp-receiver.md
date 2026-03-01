@@ -489,7 +489,7 @@ This reduces the risk of idle clients tying up the handler.
 - If `Server` is a host name that resolves to multiple addresses, binding chooses one resolved address rather than all of them.
 - Response transformers are only meaningful for custom response mode.
 
-## Minimal examples
+## Examples
 
 ### Minimal HL7 listener with automatic ACK
 

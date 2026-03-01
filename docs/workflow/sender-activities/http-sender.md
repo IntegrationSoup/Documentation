@@ -309,6 +309,47 @@ User-facing name of this sender setting.
 - Header objects serialize like database parameters, but most of the database-formatting fields are not used by the HTTP sender runtime.
 - `ResponseMessageTemplate` serializes but does not drive the actual HTTP response body.
 
+## Examples
+
+### JSON POST with custom header and response retention
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.HttpSenderSetting, HL7SoupWorkflow",
+  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "Name": "Send JSON API",
+  "Method": 1,
+  "Server": "https://api.example.com/patient",
+  "ContentType": "application/json",
+  "MessageType": 11,
+  "MessageTemplate": "{ \"patientId\": \"${PatientId}\" }",
+  "Headers": [
+    {
+      "Name": "X-Correlation-Id",
+      "Value": "${CorrelationId}",
+      "FromType": 8,
+      "FromDirection": 2
+    }
+  ],
+  "WaitForResponse": true
+}
+```
+
+### GET request where message template is ignored
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.HttpSenderSetting, HL7SoupWorkflow",
+  "Id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "Name": "Fetch Patient",
+  "Method": 0,
+  "Server": "https://api.example.com/patient/${PatientId}",
+  "MessageType": 11,
+  "MessageTemplate": "{ \"ignored\": true }",
+  "WaitForResponse": true
+}
+```
+
 ## Useful public references
 
 - [Integration Soup](https://www.integrationsoup.com/)

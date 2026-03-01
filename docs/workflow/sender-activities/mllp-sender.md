@@ -217,6 +217,42 @@ User-facing name of this sender setting.
 - `UseResponse = true` turns empty responses into workflow errors.
 - `ResponseMessageTemplate` serializes but does not control the actual socket response.
 
+## Examples
+
+### Standard HL7 send expecting ACK
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.MLLPSenderSetting, HL7SoupWorkflow",
+  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "Name": "Send ADT",
+  "Server": "127.0.0.1",
+  "Port": 22222,
+  "MessageType": 1,
+  "MessageTemplate": "MSH|^~\\&|...\\rPID|...\\r",
+  "WaitForResponse": true,
+  "UseResponse": true
+}
+```
+
+### TLS MLLP send with client certificate
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.MLLPSenderSetting, HL7SoupWorkflow",
+  "Id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "Name": "Secure Send",
+  "Server": "mllp.partner.local",
+  "Port": 2575,
+  "UseSsl": true,
+  "AuthenticationType": 2,
+  "AuthenticationCertificateThumbprint": "0123456789ABCDEF0123456789ABCDEF01234567",
+  "MessageType": 1,
+  "MessageTemplate": "MSH|^~\\&|...\\rPID|...\\r",
+  "WaitForResponse": true
+}
+```
+
 ## Useful public references
 
 - [Integration Soup](https://www.integrationsoup.com/)

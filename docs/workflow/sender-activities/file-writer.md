@@ -196,6 +196,38 @@ User-facing name of this sender setting.
 - DICOM messages are written as raw bytes through a special runtime path.
 - `DirectoryToMoveInto` must be treated as a directory, not as a full destination file path.
 
+## Examples
+
+### HL7 append with processed-folder rollover
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.FileWriterSenderSetting, HL7SoupWorkflow",
+  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "Name": "Write HL7 Batch",
+  "FilePathToWrite": "c:\\temp\\out\\batch.hl7",
+  "MessageType": 1,
+  "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
+  "MoveIntoDirectoryOnComplete": true,
+  "DirectoryToMoveInto": "c:\\temp\\processed",
+  "MaxRecordsPerFile": 1000
+}
+```
+
+### Binary file write from base64 content
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.FileWriterSenderSetting, HL7SoupWorkflow",
+  "Id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "Name": "Write PDF Bytes",
+  "FilePathToWrite": "c:\\temp\\out\\result.pdf",
+  "MessageType": 14,
+  "MessageTemplate": "${PdfBase64}",
+  "MoveIntoDirectoryOnComplete": false
+}
+```
+
 ## Useful public references
 
 - [Integration Soup](https://www.integrationsoup.com/)

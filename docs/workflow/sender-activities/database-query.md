@@ -2,32 +2,33 @@
 
 ## What this setting controls
 
-`DatabaseSenderSetting` executes SQL against a configured database connection and optionally returns the first row of the first result set as a CSV response message.
+`DatabaseSenderSetting` executes SQL against a configured database connection and can optionally return a response message.  
+When a response is enabled, only the first row of the first result set is returned, and it is returned as CSV.
 
-This document is about the serialized workflow JSON contract and the runtime effects of those fields.
+This page documents serialized JSON fields and their runtime impact.
 
 ## Operational model
 
 ```mermaid
 flowchart TD
-    A[Build SQL text from MessageTemplate] --> B[Resolve ConnectionString variables]
+    A[Build SQL from MessageTemplate] --> B[Resolve ConnectionString variables]
     B --> C[Optional config= lookup]
     C --> D[Create provider-specific connection and command]
-    D --> E[Build parameters from Parameters list]
+    D --> E[Build DbParameters from Parameters list]
     E --> F{ResponseNotAvailable}
     F -- true --> G[ExecuteNonQuery]
     F -- false --> H[ExecuteReader]
     H --> I[Read first row only]
     I --> J[Convert row to CSV]
-    J --> K[Store CSV activity response]
+    J --> K[Store CSV response message]
 ```
 
 Important non-obvious points:
 
-- The activity always executes `CommandType.Text`.
-- If a response is enabled, only the first row of the first result set is returned.
-- Response rows are converted to CSV regardless of the underlying database provider.
-- Parameter values are created as strings after binding and formatting.
+- SQL is always executed as `CommandType.Text`.
+- Response mode returns first row only.
+- Parameter values are bound as strings after value extraction/formatting.
+- Binary response columns are base64-encoded in the CSV output.
 
 ## JSON shape
 
@@ -56,21 +57,60 @@ Important non-obvious points:
 }
 ```
 
+## Required vs optional keys
+
+The safest JSON authoring pattern for AI/dev tooling is to always include:
+
+- `Id`
+- `Name`
+- `ConnectionString`
+- `DataProvider`
+- `MessageTemplate`
+- `Parameters`
+- `ResponseNotAvailable`
+
+Conditionally include:
+
+- if `ResponseNotAvailable = false`:
+  - `ResponseMessageTemplate`
+  - `ResponseMessageType` (`5` for CSV)
+- if `Parameters[i].FromDirection != 2`:
+  - `Parameters[i].FromSetting`
+
+Commonly present but not specific to this sender:
+
+- `Version`
+- `Filters`
+- `Transformers`
+
+## Defaults for new settings
+
+`DatabaseSenderSetting` initializes with:
+
+- `ConnectionString = ""`
+- `MessageType = 6` (SQL)
+- `ResponseMessageType = 5` (CSV)
+- `ResponseNotAvailable = true`
+- `Parameters = []`
+
+Practical implication:
+
+- if your loader applies constructor defaults before JSON assignment, omitting `MessageType` and `ResponseMessageType` can still work
+- for deterministic authored JSON, include them explicitly
+
 ## Connection fields
 
 ### `ConnectionString`
 
-Database connection string.
+Database connection string. Variables are resolved at runtime.
 
-Behavior:
+Special case:
 
-- Variables are processed at runtime.
-- If the value starts with `config=`, the remainder is treated as a named connection string in the host application's configuration.
+- If value starts with `config=`, the remainder is treated as a named connection string in host config.
 
-Important outcomes:
+Non-obvious outcome:
 
-- In Integration Host scenarios, the config lookup happens in the server-side host process, not in the editor.
-- Missing config names fail at runtime with a configuration error.
+- lookup occurs in the executing host process (for Integration Host, usually server-side), not in the editor.
 
 ### `DataProvider`
 
@@ -87,8 +127,8 @@ JSON enum values:
 
 Important outcomes:
 
-- `OleDb` is only supported on Windows in the current runtime path.
-- Oracle parameter names are normalized so the command parameter does not keep the leading `:`.
+- `OleDb` is Windows-only in current runtime path.
+- Oracle parameter names are normalized (leading `:` removed for bound parameter name).
 
 ## SQL and response fields
 
@@ -98,34 +138,36 @@ SQL text to execute.
 
 Important outcome:
 
-- The activity always runs this as text SQL, not as a stored procedure command type.
+- command type is always text SQL, not stored procedure mode.
 
 ### `MessageType`
 
-For this setting, the meaningful JSON value is:
+Meaningful value for this setting:
 
 - `6` = `SQL`
 
 ### `ResponseNotAvailable`
 
-Controls whether the activity expects and returns a query result.
+Controls response mode:
 
-Behavior:
+- `true`: execute non-query (`ExecuteNonQuery`)
+- `false`: execute reader (`ExecuteReader`) and return CSV response
 
-- `true`: execute with `ExecuteNonQuery()`
-- `false`: execute with `ExecuteReader()` and build a CSV response
+Important naming trap:
+
+- `ResponseNotAvailable = false` means a response is expected and returned.
 
 ### `ResponseMessageTemplate`
 
-When a response is enabled, this is the design-time schema for the CSV response.
+Design-time response schema (CSV columns in expected order).
 
-Practical usage:
+Practical guidance:
 
-- List the expected result fields in order, comma-separated, no spaces.
+- use comma-separated names with no spaces, for example `PatientId,LastName,FirstName`.
 
 ### `ResponseMessageType`
 
-When a response is enabled, the meaningful JSON value is:
+Meaningful value when response is enabled:
 
 - `5` = `CSV`
 
@@ -135,7 +177,7 @@ When a response is enabled, the meaningful JSON value is:
 
 List of `DatabaseSettingParameter` objects.
 
-Typical parameter object:
+Typical serialized object:
 
 ```json
 {
@@ -145,6 +187,7 @@ Typical parameter object:
   "FromDirection": 2,
   "FromSetting": "00000000-0000-0000-0000-000000000000",
   "Encoding": 0,
+  "Format": "",
   "TextFormat": 0,
   "Truncation": 0,
   "TruncationLength": 50,
@@ -155,25 +198,17 @@ Typical parameter object:
 
 ### `Name`
 
-SQL parameter name.
+SQL parameter placeholder name.
 
-Important outcome:
+Provider behavior:
 
-- For Oracle, the editor and SQL text use `:ParamName`, but runtime strips the leading `:` when creating the actual `DbParameter`.
+- most providers use `@ParamName`
+- Oracle SQL uses `:ParamName`
+- runtime normalizes Oracle bound parameter name by removing leading `:`
 
 ### `Value`
 
-Source expression for the parameter value.
-
-### `FromType`
-
-Useful JSON enum values:
-
-- `8` = `TextWithVariables`
-- `9` = `HL7V2Path`
-- `10` = `XPath`
-- `11` = `CSVPath`
-- `12` = `JSONPath`
+The source expression used to create parameter value.
 
 ### `FromDirection`
 
@@ -183,13 +218,28 @@ JSON enum values:
 - `1` = `outbound`
 - `2` = `variable`
 
+Runtime meaning:
+
+- `2` pulls from variable/literal context
+- `0` or `1` pulls from another activity message direction and requires `FromSetting`
+
 ### `FromSetting`
 
-GUID of the source activity when `FromDirection` is not `2`.
+GUID of source activity when `FromDirection` is `0` or `1`.
+
+### `FromType`
+
+Supported JSON enum values:
+
+- `8` = `TextWithVariables`
+- `9` = `HL7V2Path`
+- `10` = `XPath`
+- `11` = `CSVPath`
+- `12` = `JSONPath`
 
 ### Formatting fields
 
-Serialized fields that materially affect runtime parameter value shaping:
+Serialized fields that shape parameter value before binding:
 
 - `Encoding`
 - `Format`
@@ -201,64 +251,116 @@ Serialized fields that materially affect runtime parameter value shaping:
 
 Important outcome:
 
-- These are applied to the bound string value before it becomes the database parameter value.
+- parameters are eventually assigned as strings; formatting choices materially affect query behavior.
 
-## Response row behavior that matters
+## Response behavior details
 
 When `ResponseNotAvailable = false`, runtime:
 
-- reads only the first row
-- converts each column to CSV
-- quotes string values
-- escapes embedded quotes
-- base64-encodes binary column values
+- executes reader
+- reads only first row
+- converts row to CSV
+- quotes and escapes strings
+- base64-encodes byte arrays
 
-Important outcomes:
+Implications:
 
-- Multi-row results are not returned.
-- Multiple result sets are not exposed.
-- Binary columns become base64 text inside the CSV response.
-
-## Workflow linkage fields
-
-### `Filters`
-
-GUID of sender filters.
-
-### `Transformers`
-
-GUID of sender transformers.
-
-### `Disabled`
-
-If `true`, the activity is disabled.
-
-### `Id`
-
-GUID of this sender setting.
-
-### `Name`
-
-User-facing name of this sender setting.
-
-## Defaults for a new `DatabaseSenderSetting`
-
-- `ConnectionString = ""`
-- `MessageType = 6`
-- `ResponseMessageType = 5`
-- `ResponseNotAvailable = true`
-- `Parameters = []`
+- multi-row and multi-result-set data are not directly surfaced
+- downstream bindings rely on CSV semantics and column ordering
 
 ## Pitfalls and hidden outcomes
 
-- Only the first row is returned.
-- Response mode always returns CSV, not JSON or XML.
-- Parameter values are formatted and then assigned as strings.
-- `ResponseMessageTemplate` is metadata for the workflow, not a SQL projection rule.
-- `OleDb` is not portable beyond Windows in the current runtime path.
+- First row only: additional rows are discarded.
+- Command is always text SQL: no stored-procedure command mode.
+- Parameter values are bound as strings: implicit DB conversions can cause subtle behavior/performance differences.
+- `ResponseMessageTemplate` is schema metadata, not a projection rule.
+- ODBC/OleDb drivers may behave positionally for parameters; parameter order can matter.
+- `OleDb` is not portable beyond Windows in current runtime path.
+- SQL and parameter values are logged in normal operation paths; sensitive data can land in logs if not controlled.
+
+## Examples
+
+### Insert or update with no response
+
+```json
+{
+  "Id": "8f65d3f2-6b5f-4d8b-8b02-8b82c4c2b8cb",
+  "Name": "Insert Patient",
+  "ConnectionString": "config=MainDb",
+  "DataProvider": 0,
+  "MessageType": 6,
+  "MessageTemplate": "INSERT INTO Patients (PatientId, LastName) VALUES (@PatientId, @LastName)",
+  "Parameters": [
+    {
+      "Name": "@PatientId",
+      "Value": "${PatientId}",
+      "FromType": 8,
+      "FromDirection": 2
+    },
+    {
+      "Name": "@LastName",
+      "Value": "PID-5.1",
+      "FromType": 9,
+      "FromDirection": 0,
+      "FromSetting": "22222222-2222-2222-2222-222222222222"
+    }
+  ],
+  "ResponseNotAvailable": true
+}
+```
+
+### Single-row lookup with response
+
+```json
+{
+  "Id": "6c0d3c3c-7b28-4b65-8f73-5a07a8dc1e64",
+  "Name": "Lookup Patient",
+  "ConnectionString": "config=MainDb",
+  "DataProvider": 0,
+  "MessageType": 6,
+  "MessageTemplate": "SELECT PatientId, LastName, FirstName FROM Patients WHERE PatientId = @PatientId",
+  "Parameters": [
+    {
+      "Name": "@PatientId",
+      "Value": "${PatientId}",
+      "FromType": 8,
+      "FromDirection": 2
+    }
+  ],
+  "ResponseNotAvailable": false,
+  "ResponseMessageTemplate": "PatientId,LastName,FirstName",
+  "ResponseMessageType": 5
+}
+```
+
+### Oracle parameter example
+
+```json
+{
+  "Id": "b8b2fba2-45b4-49a0-a215-6aa9d4b62c9c",
+  "Name": "Oracle Insert",
+  "ConnectionString": "config=OracleDb",
+  "DataProvider": 1,
+  "MessageType": 6,
+  "MessageTemplate": "INSERT INTO PATIENTS (PATIENT_ID) VALUES (:PatientId)",
+  "Parameters": [
+    {
+      "Name": ":PatientId",
+      "Value": "${PatientId}",
+      "FromType": 8,
+      "FromDirection": 2
+    }
+  ],
+  "ResponseNotAvailable": true
+}
+```
 
 ## Useful public references
 
 - [Integration Soup](https://www.integrationsoup.com/)
 - [Send HL7 To a Database With Activities](https://www.integrationsoup.com/hl7tutorialaddpatienttodatabasewithactivities.html)
+- [Send HL7 to a Database](https://www.integrationsoup.com/hl7tutorialsendhl7toadatabase.html)
 - [Using Variables in HL7 Soup](https://www.integrationsoup.com/hl7tutorialusingvariables.html)
+- [Using Transformers](https://www.integrationsoup.com/hl7tutorialusingtransformers.html)
+- [Using Filters](https://www.integrationsoup.com/hl7tutorialfilters.html)
+- [HL7 Interfacer Blog](https://hl7interfacer.blogspot.com/)

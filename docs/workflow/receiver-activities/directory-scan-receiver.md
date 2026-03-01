@@ -480,7 +480,7 @@ Use:
 - Leaving processed files in place can make missed-file recovery harder because safe periodic rescans are limited.
 - Receiver-specific `Transformers` serialize but are not meaningfully executed in the current runtime path.
 
-## Minimal examples
+## Examples
 
 ### Continuous HL7 drop folder
 

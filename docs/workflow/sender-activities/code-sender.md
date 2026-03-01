@@ -146,6 +146,42 @@ User-facing name of this sender setting.
 - `UseResponse = true` does not guarantee a useful response unless the code actually populates it correctly.
 - The sample code shown in the product is HL7-oriented, but the activity can work with other message types if the script uses the appropriate interfaces.
 
+## Examples
+
+### Variable-only code activity with no response object
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.CodeSenderSetting, HL7SoupWorkflow",
+  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "Name": "Set Variables",
+  "MessageType": 13,
+  "MessageTemplate": "",
+  "UseResponse": false,
+  "Code": "workflowInstance.SetVariable(\"PatientKey\", \"12345\");",
+  "VariableNames": [
+    "PatientKey"
+  ]
+}
+```
+
+### HL7 response-building script
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.CodeSenderSetting, HL7SoupWorkflow",
+  "Id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "Name": "Build ACK in Code",
+  "MessageType": 1,
+  "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
+  "UseResponse": true,
+  "ResponseMessageType": 1,
+  "ResponseMessageTemplate": "MSH|^~\\&|SRC|FAC|DST|FAC|${ReceivedDate}||ACK^A01|1|P|2.5.1\\rMSA|AA|1",
+  "Code": "activityInstance.Response.Text = activityInstance.Response.Text;",
+  "VariableNames": []
+}
+```
+
 ## Useful public references
 
 - [Integration Soup](https://www.integrationsoup.com/)

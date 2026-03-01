@@ -576,7 +576,7 @@ This is safer than assuming arbitrary query parameters become variables automati
   - Integration Host: duplicate external listener name
 - Manual JSON edits for advanced response modes can be lost when the setting is reopened and saved in the HTTP receiver UI.
 
-## Minimal examples
+## Examples
 
 ### Minimal self-hosted HTTP JSON receiver
 
