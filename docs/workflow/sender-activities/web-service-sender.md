@@ -1,57 +1,59 @@
-**Web Service Sender (WebServiceSenderSetting)**
+# **Web Service Sender (WebServiceSenderSetting)**
 
 ## What this setting controls
 
-`WebServiceSenderSetting` defines a SOAP client sender that posts a SOAP envelope to a remote web service endpoint, optionally authenticates, optionally uses a client certificate, and optionally captures the SOAP response body for downstream workflow use.
+`WebServiceSenderSetting` defines a SOAP client activity. It sends a SOAP envelope to a remote service, optionally uses credentials, proxy settings, and client certificates, and optionally captures the SOAP response.
 
-This document focuses on the serialized workflow JSON contract and the runtime effects of those fields.
+This document is about the serialized workflow JSON contract and the runtime effects of those fields.
 
 ## Operational model
 
 ```mermaid
 flowchart TD
     A[Build outbound SOAP envelope from MessageTemplate] --> B[Choose operation metadata]
-    B --> C[Create HTTP POST request]
-    C --> D[Optional proxy, auth, client certificate setup]
-    D --> E[Send SOAP request]
-    E --> F{WaitForResponse?}
-    F -- no --> G[Finish]
-    F -- yes --> H[Read response stream]
-    H --> I[Extract SOAP XML or MTOM SOAP part]
+    B --> C[Create HTTP POST SOAP request]
+    C --> D[Apply auth, certificate, timeout, proxy]
+    D --> E[Send XML body]
+    E --> F{WaitForResponse}
+    F -- false --> G[Finish]
+    F -- true --> H[Read response]
+    H --> I[Extract plain SOAP XML or MTOM SOAP part]
     I --> J[Store as activity response]
 ```
 
 Important non-obvious points:
 
-- This sender is always HTTP POST SOAP, not arbitrary REST.
+- This sender is always SOAP over HTTP. It is not a general REST sender.
 - `MessageTemplate` must already be a valid SOAP envelope.
-- `Operation` is a serialized object, not just a name.
-- `Wsdl` is for discovery; `Server` is the actual runtime target.
+- `Operation` is a serialized object that can materially drive runtime behavior.
+- In automatic mode, the root-level `Action`, `UseSoap12`, and `PassAuthenticationInSoapHeader` do not drive the request directly; the `Operation` object does.
 
 ## JSON shape
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.WebServiceSenderSetting, HL7SoupWorkflow",
-  "Id": "6c0dfd57-f35d-4860-98e1-5d8008265140",
-  "Name": "Call Lab Service",
+  "Id": "bda00408-a98e-4d92-9bc0-176e38415bcb",
+  "Name": "Submit Order",
   "MessageType": 4,
   "MessageTemplate": "<s:Envelope>...</s:Envelope>",
   "ResponseMessageTemplate": "<s:Envelope>...</s:Envelope>",
   "Server": "https://partner.example.com/service.svc",
   "Wsdl": "https://partner.example.com/service.svc?wsdl",
-  "ServiceName": "LabService",
-  "Action": "http://tempuri.org/ILabService/SubmitOrder",
+  "ServiceName": "OrderService",
+  "Action": "http://tempuri.org/IOrderService/SubmitOrder",
   "UseSoap12": false,
   "PassAuthenticationInSoapHeader": false,
   "Operation": {
     "Name": "SubmitOrder",
-    "Action": "http://tempuri.org/ILabService/SubmitOrder",
+    "Action": "http://tempuri.org/IOrderService/SubmitOrder",
     "RequestSoap": "<s:Envelope>...</s:Envelope>",
     "ResponseSoap": "<s:Envelope>...</s:Envelope>",
     "IsOneWay": false,
     "UseSoap12": false,
-    "PassAuthenticationInSoapHeader": false
+    "PassAuthenticationInSoapHeader": false,
+    "UseCertificateForAuthentication": false,
+    "AuthenticationCertificate": false
   },
   "ManualConfiguration": false,
   "Authentication": false,
@@ -72,7 +74,7 @@ Important non-obvious points:
 }
 ```
 
-## Target and operation fields
+## Endpoint and discovery fields
 
 ### `Server`
 
@@ -80,26 +82,32 @@ Actual endpoint URL used for the SOAP POST.
 
 ### `Wsdl`
 
-WSDL URL used for discovery and operation loading.
+WSDL address used by the editor for discovery.
+
+Important outcome:
+
+- Runtime sends to `Server`, not to `Wsdl`.
 
 ### `ServiceName`
 
-Name of the discovered SOAP service.
+Name of the discovered service.
+
+## Operation selection fields
 
 ### `ManualConfiguration`
 
-Controls where runtime gets the operation metadata.
+Controls whether runtime uses the root-level manual fields or the serialized `Operation` object.
 
 Behavior:
 
-- `false`: use the serialized `Operation` object
+- `false`: use `Operation`
 - `true`: use `Action`, `UseSoap12`, and `PassAuthenticationInSoapHeader`
 
 ### `Operation`
 
-Serialized operation descriptor.
+Serialized web service operation descriptor.
 
-Meaningful fields:
+Meaningful JSON-level fields:
 
 - `Name`
 - `Action`
@@ -109,37 +117,42 @@ Meaningful fields:
 - `UseSoap12`
 - `PassAuthenticationInSoapHeader`
 
+Important outcomes:
+
+- In automatic mode, this object is the effective source of action name and SOAP version.
+- The editor can overwrite the request and response templates from this object when they still look like defaults.
+
 ### `Action`
 
-SOAP action used when `ManualConfiguration = true`.
+SOAP action used in manual mode.
 
 ### `UseSoap12`
 
-Used directly only in manual mode.
+Used directly in manual mode.
 
 - `false`: SOAP 1.1
 - `true`: SOAP 1.2
 
 ### `PassAuthenticationInSoapHeader`
 
-Used directly only in manual mode.
+Used directly in manual mode.
 
 - `false`: HTTP/network credentials
 - `true`: inject WS-Security UsernameToken into the SOAP header if needed
 
-## Authentication and transport fields
+## Authentication, certificate, and proxy fields
 
 ### `Authentication`
 
-Enables username/password authentication.
+Enable username/password authentication.
 
 ### `UserName`
 
-User name for authentication.
+Username when `Authentication = true`.
 
 ### `Password`
 
-Password for authentication.
+Password when `Authentication = true`.
 
 ### `UseAuthenticationCertificate`
 
@@ -147,15 +160,19 @@ Attach a client certificate to the HTTP request.
 
 ### `AuthenticationCertificateThumbprint`
 
-Client certificate thumbprint looked up in `LocalMachine\\My`.
+Thumbprint of the client certificate.
+
+Important outcome:
+
+- Runtime looks in `LocalMachine\My`.
 
 ### `PreAuthenticate`
 
-Controls whether auth information is sent eagerly.
+Controls whether auth information is sent eagerly on later requests.
 
 ### `UseDefaultCredentials`
 
-Use process/default user credentials if requested by the server.
+Use the host process/default user credentials when requested.
 
 ### `UseProxy`
 
@@ -171,11 +188,11 @@ Proxy URL when `UseProxy = 1`.
 
 ### `ProxyUserName`
 
-Proxy user name when `UseProxy = 1`.
+Manual proxy username when `UseProxy = 1`.
 
 ### `ProxyPassword`
 
-Proxy password when `UseProxy = 1`.
+Manual proxy password when `UseProxy = 1`.
 
 ### `TimeoutSeconds`
 
@@ -185,23 +202,31 @@ HTTP request timeout.
 
 ### `MessageType`
 
-For this sender, new JSON should use:
+For this sender, the meaningful JSON value is:
 
 - `4` = `XML`
 
 ### `MessageTemplate`
 
-Outbound SOAP envelope text.
+Outbound SOAP envelope.
 
 ### `ResponseMessageTemplate`
 
-Design-time sample response envelope. Runtime response content comes from the remote service.
+Serialized design-time sample response.
+
+Important outcome:
+
+- It does not control the actual response from the remote service.
 
 ## Response field
 
 ### `WaitForResponse`
 
 Controls whether the sender waits for and captures the SOAP response.
+
+Important outcome:
+
+- MTOM responses are reduced to the SOAP XML part. Attachments are not surfaced as standalone workflow payload objects by this sender.
 
 ## Workflow linkage fields
 
@@ -233,38 +258,11 @@ User-facing name of this sender setting.
 
 ## Pitfalls and hidden outcomes
 
-- Runtime always POSTs SOAP. This is not a REST sender.
-- `MessageTemplate` must already be a valid SOAP envelope.
-- `Operation` is runtime-significant in automatic mode.
-- `UseSoap12` and `PassAuthenticationInSoapHeader` on the root setting only matter directly in manual mode.
-- `Wsdl` does not determine the runtime target URL. `Server` does.
-- MTOM responses are reduced to their SOAP XML portion; attachments are not exposed as workflow objects here.
-- Client certificate lookup is hard-wired to the machine personal store.
-
-## Minimal example
-
-```json
-{
-  "$type": "HL7Soup.Functions.Settings.Senders.WebServiceSenderSetting, HL7SoupWorkflow",
-  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-  "Name": "Submit Order",
-  "MessageType": 4,
-  "MessageTemplate": "<s:Envelope>...</s:Envelope>",
-  "Server": "https://partner.example.com/service.svc",
-  "Wsdl": "https://partner.example.com/service.svc?wsdl",
-  "ManualConfiguration": false,
-  "Operation": {
-    "Name": "SubmitOrder",
-    "Action": "http://tempuri.org/ILabService/SubmitOrder",
-    "RequestSoap": "<s:Envelope>...</s:Envelope>",
-    "ResponseSoap": "<s:Envelope>...</s:Envelope>",
-    "IsOneWay": false,
-    "UseSoap12": false,
-    "PassAuthenticationInSoapHeader": false
-  },
-  "WaitForResponse": true
-}
-```
+- `Wsdl` is not the runtime target URL.
+- In automatic mode, the `Operation` object is runtime-significant.
+- `ResponseMessageTemplate` serializes but does not drive the actual response content.
+- MTOM attachments are not exposed as standalone workflow objects here.
+- Client certificate lookup is fixed to the machine personal store.
 
 ## Useful public references
 

@@ -1,33 +1,36 @@
-**Code Sender (CodeSenderSetting)**
+# **Code Sender (CodeSenderSetting)**
 
 ## What this setting controls
 
-`CodeSenderSetting` defines a custom C# script activity that runs inside the workflow, can read and modify the current activity message state, and can set workflow variables.
+`CodeSenderSetting` defines a custom C# script activity. It runs code inside the workflow, can inspect and modify the current activity message state, and can create workflow variables for later activities.
 
-This document focuses on the serialized workflow JSON contract and the runtime effects of those fields.
+This document is about the serialized workflow JSON contract and the runtime effects of those fields.
 
 ## Operational model
 
 ```mermaid
 flowchart TD
-    A[Compile Code during prepare] --> B[Build optional response message object]
-    B --> C[Run script with workflowInstance and activityInstance]
-    C --> D[Script reads/modifies messages and variables]
-    D --> E[Optional response message becomes activity response]
+    A[Compile Code during prepare] --> B{UseResponse}
+    B -- false --> C[Run script with workflowInstance and activityInstance]
+    B -- true --> D[Create response message object]
+    D --> C
+    C --> E[Script reads/writes messages and variables]
+    E --> F[Optional response becomes activity response]
 ```
 
 Important non-obvious points:
 
-- The script is compiled once during prepare, not recompiled for every message.
-- Compilation failure blocks the activity before normal processing begins.
-- Variables created via `workflowInstance.SetVariable(...)` are only discoverable in bindings if their names are listed in `VariableNames`.
+- Compilation happens during prepare, not per message.
+- Script failures during prepare block the activity before normal message processing.
+- Variables set by code are only discoverable in the binding UI if their names are listed in `VariableNames`.
+- `ResponseMessageTemplate` and `ResponseMessageType` affect the initial response object that code sees when `UseResponse = true`.
 
 ## JSON shape
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.CodeSenderSetting, HL7SoupWorkflow",
-  "Id": "c89d5cd5-6cc1-4dcf-8f39-e0aef7adb6dd",
+  "Id": "be167fbf-18d0-468d-a56d-50a676fd1c76",
   "Name": "Run Custom Logic",
   "MessageType": 1,
   "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
@@ -43,33 +46,38 @@ Important non-obvious points:
 }
 ```
 
-## Core script fields
+## Script fields
 
 ### `Code`
 
 The C# script to compile and execute.
 
-The script runs with a context exposing:
+Runtime context exposes:
 
 - `workflowInstance`
 - `activityInstance`
 
+Important outcomes:
+
+- Compile errors fail during prepare.
+- Runtime exceptions fail the current workflow instance and return a script-oriented stack trace.
+- The product preloads Integration Soup message references and several common .NET data-access namespaces.
+
 ### `VariableNames`
 
-List of variable names that the code may create.
+List of variable names that this code activity may create.
 
-Practical meaning:
+Important outcomes:
 
-- This is how the workflow editor/binding tree knows which variables to show from this activity.
-- The runtime does not restrict the script to only these names.
+- This is primarily declaration metadata for bindings and designer discoverability.
+- Runtime does not enforce this list.
+- If the script sets variables that are not listed here, downstream JSON authors may not see them in the normal binding tree.
 
 ## Message fields
 
 ### `MessageType`
 
-Type of the outbound/current activity message that the script expects to work with.
-
-The current sender UI supports:
+The current editor allows:
 
 - `1` = `HL7`
 - `4` = `XML`
@@ -81,24 +89,25 @@ The current sender UI supports:
 
 ### `MessageTemplate`
 
-Initial outbound/current message for the activity.
+Initial message for the activity.
 
 ### `UseResponse`
 
-Controls whether the activity should create and expose a response message object for the script to work with.
+Controls whether a response message object is created before the script runs.
 
 ### `ResponseMessageTemplate`
 
-Template text used to create the response message object when `UseResponse = true`.
+Template used to create the response object when `UseResponse = true`.
 
 ### `ResponseMessageType`
 
-Message type of the response message when `UseResponse = true`.
+Type of the response message when `UseResponse = true`.
 
 Important behavior:
 
-- If this is `Unknown` and `ResponseMessageTemplate` is blank, runtime creates an empty response object using the activity `MessageType`.
-- If this is `Unknown` and `ResponseMessageTemplate` is not blank, runtime tries to determine the type from the template text.
+- If `ResponseMessageType` is explicitly set, runtime uses it.
+- If it is `Unknown` and `ResponseMessageTemplate` is blank, runtime falls back to the activity `MessageType`.
+- If it is `Unknown` and `ResponseMessageTemplate` is not blank, runtime attempts to infer the type from the template text.
 
 ## Workflow linkage fields
 
@@ -109,6 +118,8 @@ GUID of sender filters.
 ### `Transformers`
 
 GUID of sender transformers.
+
+These run before the script and shape the activity message the script receives.
 
 ### `Disabled`
 
@@ -126,33 +137,17 @@ User-facing name of this sender setting.
 
 - `UseResponse = false`
 - `VariableNames = []`
-- `Code` starts with a sample script template
+- `Code` starts with a sample script
 
 ## Pitfalls and hidden outcomes
 
-- `VariableNames` is not enforcement. It is declaration metadata for discoverability.
-- If the script sets a variable but `VariableNames` does not include it, downstream JSON authors may miss that variable.
-- `UseResponse = true` does not automatically make the response valid; the script still has to populate it correctly.
-- Leaving `ResponseMessageType` as `Unknown` can make behavior depend on template auto-detection.
-
-## Minimal example
-
-```json
-{
-  "$type": "HL7Soup.Functions.Settings.Senders.CodeSenderSetting, HL7SoupWorkflow",
-  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-  "Name": "Set Variable",
-  "MessageType": 13,
-  "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
-  "UseResponse": false,
-  "Code": "workflowInstance.SetVariable(\"RoutingKey\", \"LAB\");",
-  "VariableNames": [
-    "RoutingKey"
-  ]
-}
-```
+- `VariableNames` is discoverability metadata, not enforcement.
+- Leaving `ResponseMessageType` as `Unknown` makes response creation depend on inference.
+- `UseResponse = true` does not guarantee a useful response unless the code actually populates it correctly.
+- The sample code shown in the product is HL7-oriented, but the activity can work with other message types if the script uses the appropriate interfaces.
 
 ## Useful public references
 
 - [Integration Soup](https://www.integrationsoup.com/)
 - [Using Variables in HL7 Soup](https://www.integrationsoup.com/hl7tutorialusingvariables.html)
+- [Using Transformers](https://www.integrationsoup.com/hl7tutorialusingtransformers.html)

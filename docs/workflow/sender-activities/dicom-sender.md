@@ -1,19 +1,19 @@
-**DICOM Sender (DicomSenderSetting)**
+# **DICOM Sender (DicomSenderSetting)**
 
 ## What this setting controls
 
-`DicomSenderSetting` defines a DICOM C-STORE sender that takes the current workflow message as a DICOM object, opens a DICOM association to a remote SCP, and transmits the dataset.
+`DicomSenderSetting` defines a DICOM C-STORE sender. It expects the current workflow message to already be a DICOM message object, opens an association to a remote SCP, sends the dataset, and records a text success response if the send succeeds.
 
-This document focuses on the serialized workflow JSON contract and the runtime effects of those fields.
+This document is about the serialized workflow JSON contract and the runtime effects of those fields.
 
 ## Operational model
 
 ```mermaid
 flowchart TD
     A[Take current workflow message] --> B[Validate that it is a DicomMessage]
-    B --> C[Open DICOM file from in-memory bytes]
-    C --> D[Create C-STORE request]
-    D --> E[Connect to remote SCP]
+    B --> C[Create in-memory DICOM file]
+    C --> D[Build C-STORE request]
+    D --> E[Connect using host, port, AE titles]
     E --> F[Send C-STORE]
     F --> G[Check returned DICOM status]
     G --> H[Write text success response]
@@ -21,17 +21,17 @@ flowchart TD
 
 Important non-obvious points:
 
-- The activity expects the runtime message object to already be a DICOM message.
-- The sender currently performs a C-STORE operation only.
-- A successful send returns a text response message, not a DICOM dataset.
+- The sender checks the actual runtime message object type, not only `MessageType`.
+- This sender currently performs C-STORE only.
+- The activity response is plain text, not a DICOM response dataset.
 
 ## JSON shape
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.DicomSenderSetting, HL7SoupWorkflow",
-  "Id": "4919e338-7090-4f77-97cf-b6fe54665ecb",
-  "Name": "Send DICOM Study",
+  "Id": "74ab1db4-f8d5-46ce-8f3e-8cae7cc71420",
+  "Name": "Send to PACS",
   "MessageType": 16,
   "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
   "RemoteHost": "127.0.0.1",
@@ -60,39 +60,49 @@ Calling AE Title used by this sender.
 
 ### `RemoteAET`
 
-Called AE Title of the remote receiver.
+Called AE Title expected by the remote SCP.
+
+Important outcome:
+
+- AE Title mismatches can cause association failure even when network access is otherwise correct.
 
 ### `TimeoutSeconds`
 
-Serialized timeout value for the activity.
+Serialized timeout field for this activity.
 
-Important non-obvious outcome:
+Important outcome:
 
-- In the current runtime path this value is not meaningfully applied to the send call.
+- In the current runtime path, this value is not visibly applied to the underlying send call. It still belongs in the JSON contract, but it should not be treated as a guaranteed transport timeout in the current implementation.
 
 ## Message fields
 
 ### `MessageType`
 
-For this sender, new JSON should use:
+For this sender, the meaningful JSON value is:
 
 - `16` = `DICOM`
 
 ### `MessageTemplate`
 
-Outbound/current activity message template.
+Template for the current activity message.
 
 Critical limitation:
 
-- The runtime checks the actual message object type, not just the numeric `MessageType`.
-- If the workflow passes a non-DICOM message object, send fails even if `MessageType = 16`.
+- The runtime requires the actual message object to be a DICOM message object.
+- If the workflow passes text, XML, JSON, or any other non-DICOM object, the sender fails even if `MessageType = 16`.
 
 ## Response behavior
 
+This sender does not inherit the configurable response-template surface used by `ISenderWithResponseSetting`.
+
 Actual runtime behavior:
 
-- On success, it writes a plain text response message
-- On failure, it errors the workflow instance
+- On success, it creates a plain text response message describing the success status.
+- On failure, it errors the workflow instance.
+
+Important outcome:
+
+- Downstream activities should treat this sender's response as text, not as DICOM.
 
 ## Workflow linkage fields
 
@@ -103,6 +113,8 @@ GUID of sender filters.
 ### `Transformers`
 
 GUID of sender transformers.
+
+These can shape the activity input before send, but they do not by themselves guarantee the result is a real DICOM message object.
 
 ### `Disabled`
 
@@ -127,26 +139,10 @@ User-facing name of this sender setting.
 
 ## Pitfalls and hidden outcomes
 
-- `MessageType = 16` is not enough by itself. The message object must actually be a `DicomMessage`.
-- The sender currently performs C-STORE only.
-- The success response is text, not a DICOM object.
-- `TimeoutSeconds` serializes but is not clearly enforced by the current runtime send path.
-
-## Minimal example
-
-```json
-{
-  "$type": "HL7Soup.Functions.Settings.Senders.DicomSenderSetting, HL7SoupWorkflow",
-  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-  "Name": "Send to PACS",
-  "MessageType": 16,
-  "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
-  "RemoteHost": "pacs.example.local",
-  "RemotePort": 104,
-  "OurAET": "HL7SOUP_SCU",
-  "RemoteAET": "PACS_AE"
-}
-```
+- `MessageType = 16` is not enough by itself. The runtime message object must actually be DICOM.
+- This sender currently performs only C-STORE.
+- The success response is text.
+- `TimeoutSeconds` serializes but is not clearly enforced by the current runtime path.
 
 ## Useful public references
 

@@ -1,8 +1,8 @@
-**MLLP Sender (MLLPSenderSetting)**
+# **MLLP Sender (MLLPSenderSetting)**
 
 ## What this setting controls
 
-`MLLPSenderSetting` defines a TCP client sender that wraps the outbound message in MLLP framing, sends it to a remote TCP endpoint, and optionally waits for and captures a framed response.
+`MLLPSenderSetting` defines a TCP sender that frames the outbound message using MLLP, sends it to a remote endpoint, and optionally waits for and captures the response.
 
 This document is about the serialized workflow JSON contract and the runtime effects of those fields.
 
@@ -11,35 +11,37 @@ This document is about the serialized workflow JSON contract and the runtime eff
 ```mermaid
 flowchart TD
     A[Build outbound payload from MessageTemplate] --> B[Encode text to bytes]
-    B --> C[Wrap in MLLP frame]
-    C --> D[Open TCP or reuse kept-open TCP connection]
+    B --> C[Wrap bytes in MLLP frame]
+    C --> D[Open TCP or reuse existing TCP connection]
     D --> E[Optional TLS handshake]
-    E --> F[Send bytes]
-    F --> G{WaitForResponse?}
-    G -- no --> H[Finish]
-    G -- yes --> I[Read response until frame end or socket close]
-    I --> J[Optionally keep response as activity response]
+    E --> F[Send framed data]
+    F --> G{WaitForResponse}
+    G -- false --> H[Finish]
+    G -- true --> I[Read until frame end or socket close]
+    I --> J[Optionally retain response]
 ```
 
 Important non-obvious points:
 
-- MLLP framing is applied even when `MessageType` is not HL7.
-- `WaitForResponse` and `UseResponse` are different decisions.
-- `KeepConnectionOpen = true` reuses one TCP connection across sends for that activity instance.
-- TLS server certificate validation logs warnings but still accepts invalid certificates.
+- This is still an MLLP sender even when `MessageType` is not HL7.
+- `WaitForResponse` and `UseResponse` are separate settings.
+- `KeepConnectionOpen` materially changes socket lifecycle and throughput behavior.
+- TLS server certificate validation is permissive: invalid certificates generate warnings but are still accepted.
 
 ## JSON shape
 
 ```json
 {
   "$type": "HL7Soup.Functions.Settings.Senders.MLLPSenderSetting, HL7SoupWorkflow",
-  "Id": "8e0cb789-b554-4f6f-a8ea-c9eb2dfe4a70",
-  "Name": "Send HL7 to HIS",
+  "Id": "4c9688d0-a346-453b-8242-70ff96fe1c64",
+  "Name": "Send to HIS",
   "MessageType": 1,
   "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
+  "ResponseMessageTemplate": "",
   "Server": "127.0.0.1",
   "Port": 22222,
-  "KeepConnectionOpen": false,
+  "FrameStart": [11],
+  "FrameEnd": [28, 13],
   "TimeoutSeconds": 5,
   "UseSsl": false,
   "AuthenticationType": 0,
@@ -47,7 +49,7 @@ Important non-obvious points:
   "Encoding": "utf-8",
   "WaitForResponse": true,
   "UseResponse": false,
-  "ResponseMessageTemplate": "",
+  "KeepConnectionOpen": false,
   "Filters": "00000000-0000-0000-0000-000000000000",
   "Transformers": "00000000-0000-0000-0000-000000000000"
 }
@@ -57,7 +59,7 @@ Important non-obvious points:
 
 ### `Server`
 
-Remote host name or IP address of the MLLP server.
+Remote host name or IP address.
 
 ### `Port`
 
@@ -65,39 +67,27 @@ Remote TCP port.
 
 ### `KeepConnectionOpen`
 
-Controls whether the sender reuses the same TCP connection across sends.
+Controls whether the sender reuses one TCP connection across sends.
 
 Behavior:
 
-- `false`: open a new connection for each send
-- `true`: open once in prepare phase and reuse until the activity closes
+- `false`: open a new connection per send
+- `true`: open once in prepare and keep it for later sends
 
-Important outcome:
+Important outcomes:
 
-- This can significantly reduce socket churn and avoid the Windows ephemeral-port exhaustion problem during high-volume sending.
+- This can avoid Windows ephemeral-port exhaustion under high throughput.
+- If the remote side closes the connection unexpectedly, later sends can fail until the activity/workflow is recreated.
 
 ### `TimeoutSeconds`
 
-Read timeout used when waiting for the response.
-
-### `Encoding`
-
-Text encoding used to convert the outbound text payload to bytes.
-
-Practical guidance:
-
-- New JSON should normally use `"utf-8"`.
-- If omitted, runtime falls back to UTF-8.
-
-Important outcome:
-
-- The runtime reads response data back using the shared runtime encoding path rather than strictly from this serialized property.
+Read timeout for waiting on a response.
 
 ## TLS and authentication fields
 
 ### `UseSsl`
 
-Enables TLS on the socket before sending framed data.
+Enables TLS on the socket.
 
 ### `AuthenticationType`
 
@@ -107,23 +97,21 @@ JSON enum values:
 - `1` = `Basic`
 - `2` = `Certificate`
 
-Actual runtime meaning for this sender:
+Actual runtime meaning:
 
-- `None`: no client certificate is added
-- `Certificate`: load and present a client certificate identified by `AuthenticationCertificateThumbprint`
-- `Basic`: serialized, but not meaningfully implemented by this MLLP sender
+- `0`: no client certificate
+- `2`: present a client certificate identified by `AuthenticationCertificateThumbprint`
+- `1`: serialized, but not meaningfully implemented by this sender
 
 ### `AuthenticationCertificateThumbprint`
 
-Client certificate thumbprint used when `AuthenticationType = 2`.
+Thumbprint of the client certificate used when `AuthenticationType = 2`.
 
 ## Message fields
 
 ### `MessageType`
 
-Defines how the activity interprets its outbound message and how any captured response is parsed.
-
-The sender UI supports:
+For this sender, the editor allows:
 
 - `1` = `HL7`
 - `4` = `XML`
@@ -139,31 +127,34 @@ Outbound payload template.
 
 ### `ResponseMessageTemplate`
 
-Serialized because the activity inherits response support, but it does not drive the actual socket response. It is mainly a design-time artifact.
+Serialized because this activity inherits response support, but it does not determine the actual TCP response. It is primarily design-time metadata.
 
-## Response control fields
+### `Encoding`
+
+Outbound text encoding name.
+
+Important outcomes:
+
+- If omitted, runtime falls back to UTF-8.
+- Response decoding uses the runtime message-encoding path rather than strictly this serialized field alone.
+
+## Response fields
 
 ### `WaitForResponse`
 
-Controls whether the sender waits for a response from the remote endpoint.
+Controls whether the sender waits for a remote response.
 
 ### `UseResponse`
 
-Controls whether the received response should be treated as meaningful workflow data.
+Controls whether the returned response must be meaningful workflow data.
 
-Important combinations:
+Important outcome:
 
-- `WaitForResponse = false`, `UseResponse = false`
-- `WaitForResponse = true`, `UseResponse = false`
-- `WaitForResponse = true`, `UseResponse = true`
-
-Avoid:
-
-- `WaitForResponse = false`, `UseResponse = true`
+- If `UseResponse = true` and the remote side responds with an empty message or closes without a response, the activity errors.
 
 ## Advanced framing fields
 
-These fields serialize and are honored by runtime, but are advanced JSON-only fields.
+These fields serialize and are honored by runtime, but are effectively advanced JSON-level settings.
 
 ### `FrameStart`
 
@@ -181,15 +172,19 @@ Default:
 [28, 13]
 ```
 
+Important outcome:
+
+- These affect both send framing and response parsing.
+
 ## Workflow linkage fields
 
 ### `Filters`
 
-GUID of the sender filter set.
+GUID of sender filters.
 
 ### `Transformers`
 
-GUID of the sender transformer set.
+GUID of sender transformers.
 
 ### `Disabled`
 
@@ -217,26 +212,10 @@ User-facing name of this sender setting.
 ## Pitfalls and hidden outcomes
 
 - `AuthenticationType = 1` (`Basic`) serializes but is not meaningfully implemented.
-- Invalid remote TLS certificates are still accepted after a warning.
-- `UseResponse = true` treats an empty response as an error.
-- `WaitForResponse = false` usually breaks normal HL7 ACK expectations.
-- `Encoding` controls outbound conversion, but response decoding is not controlled only by this field.
-
-## Minimal example
-
-```json
-{
-  "$type": "HL7Soup.Functions.Settings.Senders.MLLPSenderSetting, HL7SoupWorkflow",
-  "Id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-  "Name": "Send ADT",
-  "MessageType": 1,
-  "MessageTemplate": "${11111111-1111-1111-1111-111111111111 inbound}",
-  "Server": "10.0.0.20",
-  "Port": 2575,
-  "WaitForResponse": true,
-  "UseResponse": true
-}
-```
+- TLS certificate validation is permissive.
+- `WaitForResponse = false` is usually wrong for normal HL7 interoperability.
+- `UseResponse = true` turns empty responses into workflow errors.
+- `ResponseMessageTemplate` serializes but does not control the actual socket response.
 
 ## Useful public references
 
