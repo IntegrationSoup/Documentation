@@ -1,7 +1,4 @@
-```markdown
-# C# Code Transformers in Integration Soup  
-**The Definitive Guide**  
-*Version 1.0 • February 2026*
+# Coding Context
 
 This is the **complete reference** for writing C# code inside Integration Soup workflows using the **Code Transformer**.
 
@@ -304,18 +301,4 @@ DataTable.MoveToNextRow("Table");
 
 // Create message
 var msg = CreateMessage(MessageTypes.HL7, "MSH|...");
-```
-
-**You now have the complete C# coding reference for Integration Soup.**
-
-Save this file as **`Code-Transformers-Guide-Integration-Soup.md`**
-
-Happy coding! 🚀
-
-If you want:
-- More examples
-- A version with a downloadable template code file
-- A “Cookbook” of 30 real patterns
-
-…just say the word.
 ```
