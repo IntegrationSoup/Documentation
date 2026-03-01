@@ -123,6 +123,61 @@ These values describe how a binding expression should be interpreted, not what t
 | `5` | `lfExceptWithinQuotes` |
 | `6` | `crExceptWithinQuotes` |
 
+### `MessageDivisionType` (`TextMessageDivisionType`)
+
+| Value | Name | Meaning |
+|---|---|---|
+| `0` | `LinePerMessage` | Treat each line as a message. |
+| `1` | `DocumentPerMessage` | Treat the full document as one message. |
+| `2` | `SplitByCharacters` | Split by configured delimiter character(s). |
+
+## Filter enums
+
+### `Conjunction` (`Conjunctions`)
+
+| Value | Name | Meaning |
+|---|---|---|
+| `0` | `And` | Combine with logical AND. |
+| `1` | `Or` | Combine with logical OR. |
+
+### `StringMessageFilterComparers`
+
+| Value | Name |
+|---|---|
+| `0` | `Equals` |
+| `1` | `Contains` |
+| `2` | `StartsWith` |
+| `3` | `EndsWith` |
+| `4` | `LengthGreaterThan` |
+| `5` | `LengthLessThan` |
+| `6` | `Empty` |
+| `7` | `InMessage` |
+| `8` | `InDataTable` |
+| `9` | `IsTitleCase` |
+| `10` | `IsUpperCase` |
+| `11` | `IsLowerCase` |
+| `12` | `InList` |
+
+### `DateMessageFilterComparers`
+
+| Value | Name |
+|---|---|
+| `0` | `Equals` |
+| `1` | `GreaterThan` |
+| `2` | `LessThan` |
+| `3` | `GreaterThanOrEqualTo` |
+| `4` | `LessThanOrEqualTo` |
+| `5` | `Empty` |
+| `6` | `InMessage` |
+| `7` | `InvalidDate` |
+
+### `ValidMessageFilterComparers`
+
+| Value | Name |
+|---|---|
+| `0` | `Valid` |
+| `1` | `Invalid` |
+
 ## Variable metadata enum
 
 ### `VariableType` (for serialized variable-descriptor objects)
@@ -152,6 +207,13 @@ Interface-level guides:
 Workflow JSON root object guide:
 
 - [WorkflowFile in Integration Soup](../api/workflowfile.md)
+
+Workflow JSON shared-object guides:
+
+- [Filter Host (FilterHostSetting)](./filter-host-setting.md)
+- [Transformer Setting (TransformerSetting)](./transformer-setting.md)
+- [Variable Creator JSON Reference](./variable-creator.md)
+- [MessageTypeOptions JSON Reference](./message-type-options.md)
 
 ## Authoring pitfalls to avoid
 

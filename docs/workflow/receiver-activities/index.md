@@ -8,3 +8,5 @@ Receiver activities accept inbound data (e.g., TCP/MLLP HL7, files, etc.).
 - [MLLP Receiver](./mllp-receiver.md)
 - [Directory Scan Receiver](./directory-scan-receiver.md)
 - [Database Receiver](./database-reader.md)
+- [Timer Receiver](./timer-receiver.md)
+- [DICOM Receiver](./dicom-receiver.md)
