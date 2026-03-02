@@ -54,7 +54,7 @@ This page maps prompt scenarios in `AIPrompts.cs` to documentation pages in this
 | `AITransformerPromptType` | Transformer vocabulary and conversion guidance. | [Transformer Prompts](components/transformer-prompts.md) |
 | `AIFilterPromptType` | Filter semantics and filter-object guidance. | [Filter Prompts](components/filter-prompts.md) |
 | `AICodePromptType` | Code generation rules for code transformers. | [Code Prompts](components/code-prompts.md) |
-| Receiver/sender type/setting prompts | Determine concrete type, then generate serialized properties. | [Receiver/Sender Prompt Blocks](components/receiver-sender-setting-prompts.md) |
+| Receiver/sender JSON generation rules | Determine concrete type, then generate serialized properties. | [Receiver/Sender JSON Generation Guide](components/receiver-sender-setting-prompts.md) |
 | Embedded prompt blocks | Reusable prompt text blocks composed into larger system prompts. | [Embedded Prompt Blocks](components/embedded-prompt-blocks.md) |
 | Prompt persistence/override | Keying and prompt types (`System`, `User`, `Import`, `Instruction`). | [Prompt Storage and Overrides](components/prompt-storage-and-overrides.md) |
 
