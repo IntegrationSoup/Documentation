@@ -1,12 +1,12 @@
-# Transformer Prompts (`AITransformerPromptType`)
+# Transformer Rules
 
-Transformer prompts define the action vocabulary and conversion rules used when generating structured transformer actions.
+This page defines the action vocabulary and conversion rules used when generating structured transformer actions.
 
-Use these with `CreateTransformers` and `CreateSenderTransformerInstructions`.
+Use these with transformer-action and sender-instruction generation tasks.
 
 ---
 
-## Enum values
+## Rule source ids
 
 | Value | Purpose |
 |---|---|
@@ -16,16 +16,16 @@ Use these with `CreateTransformers` and `CreateSenderTransformerInstructions`.
 
 ---
 
-## Selector behavior (`GetTransformerPrompt(string filter)`)
+## Rule selection behavior
 
 - always includes `Transformers`
 - adds `MirthTransformers` when `filter` contains `mirth`
-- always appends `SystemVariables` guidance to the resulting prompt
+- always appends `SystemVariables` guidance to the selected rule text
 
 ### Non-obvious outcome
 
 - The current string selector does not do per-action token routing (`map`, `set`, `code`, etc.).
-- It returns broad guidance blocks, not a narrow action-specific prompt.
+- It returns broad guidance blocks, not a narrow action-specific rule.
 
 Practical implication:
 - your user instruction must carry action intent clearly (mapping vs variables vs code), because selector granularity is intentionally coarse.
@@ -36,9 +36,9 @@ Practical implication:
 
 For transformer authoring, compose guidance in this order:
 
-1. path prompts (`AIPathPromptType`) for message types involved
-2. transformer prompts (`AITransformerPromptType`)
-3. optional code prompts (`AICodePromptType`) if a code action is needed
+1. path rules for message types involved
+2. transformer rules
+3. optional code rules if a code action is needed
 4. concrete user instruction for the specific activity
 
 ---

@@ -1,4 +1,4 @@
-# Prompt: CreateRecieverResponseTransfomerInstructions (`AiFunctionType.CreateRecieverResponseTransfomerInstructions`)
+# Task: Create Receiver Response Instructions (`AiFunctionType.CreateRecieverResponseTransfomerInstructions`)
 
 Expands final response transformation instructions executed after sender processing.
 
@@ -17,7 +17,7 @@ Expands final response transformation instructions executed after sender process
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Create receiver response-transformer instruction text.

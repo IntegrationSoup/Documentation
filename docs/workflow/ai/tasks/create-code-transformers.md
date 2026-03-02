@@ -1,4 +1,4 @@
-# Prompt: CreateCodeTransformers (`AiFunctionType.CreateCodeTransformers`)
+# Task: Create Code Transformations (`AiFunctionType.CreateCodeTransformers`)
 
 Generates C# for code transformer actions.
 
@@ -19,7 +19,7 @@ Generates C# for code transformer actions.
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Create C# code for an Integration Soup CodeTransformerAction.
@@ -92,5 +92,5 @@ SetVariable("FullName", string.IsNullOrEmpty(last) ? first : last + ", " + first
 
 ## Related
 
-- [Code Prompts](../components/code-prompts.md)
-- [CreateTransformers](create-transformers.md)
+- [Code Rules](../components/code-rules.md)
+- [Create Transformer Actions](create-transformers.md)

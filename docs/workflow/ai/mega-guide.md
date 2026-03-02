@@ -24,7 +24,7 @@ Use [AI Workflow Structure (AiWorkflowStructure)](ai-workflow-structure.md) as t
 
 ---
 
-## Quickstart prompt chains
+## Quickstart generation chains
 
 ### A. New workflow from requirements
 
@@ -54,22 +54,24 @@ Use [AI Workflow Structure (AiWorkflowStructure)](ai-workflow-structure.md) as t
 
 ---
 
-## Prompt groups to use
+## Rule groups to use
 
-- Function prompts (`AiFunctionType`): scenario-level system prompts.
-- Path prompts (`AIPathPromptType`): path syntax and cross-activity access guidance.
-- Transformer prompts (`AITransformerPromptType`): transformer action conventions.
-- Filter prompts (`AIFilterPromptType`): filter object conventions.
-- Code prompts (`AICodePromptType`): code transformer rules and available API patterns.
-- Receiver/sender type and setting prompts: choose concrete setting class and fill serialized properties.
+Rule families used during generation:
+
+- workflow task rules (structure, validation, refinement, assembly)
+- path rules (cross-activity and message-type path syntax)
+- transformer rules (mapping/variable/update/code conversion patterns)
+- filter rules (receiver and sender pass criteria)
+- code rules (C# generation constraints for code-based transforms)
+- receiver/sender setting rules (class selection + serialized property generation)
 
 ---
 
-## Prompt catalog
+## Task catalog
 
-- [Prompt Catalog](prompt-catalog.md)
-- [Function Prompts](prompts/index.md)
-- [Prompt Components](components/index.md)
+- [Workflow JSON Task Catalog](task-catalog.md)
+- [Workflow Construction Tasks](tasks/index.md)
+- [Generation Rule Components](components/index.md)
 
 ---
 
@@ -77,6 +79,6 @@ Use [AI Workflow Structure (AiWorkflowStructure)](ai-workflow-structure.md) as t
 
 - Keep planning (`AiWorkflowStructure`) separate from concrete setting generation.
 - Generate settings first, then attach filters/transformers.
-- Use path prompt components for every instruction that includes field access.
+- Use path rules for every instruction that includes field access.
 - For Mirth conversions, include `mirth` in selector filters to pull conversion guidance.
 - Preserve message templates exactly when provided by user/import source.

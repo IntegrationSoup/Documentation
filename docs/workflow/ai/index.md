@@ -2,14 +2,14 @@
 
 - [AI Mega Guide (Workflow Authoring)](mega-guide.md)
 - [AI Workflow Structure (AiWorkflowStructure)](ai-workflow-structure.md)
-- [Prompt Catalog](prompt-catalog.md)
-- [Function Prompts](prompts/index.md)
-- [Prompt Components](components/index.md)
+- [Workflow JSON Task Catalog](task-catalog.md)
+- [Workflow Construction Tasks](tasks/index.md)
+- [Generation Rule Components](components/index.md)
 
 ---
 
 Start here:
 
 1. Read [AI Mega Guide (Workflow Authoring)](mega-guide.md).
-2. Use [Prompt Catalog](prompt-catalog.md) to choose the prompt chain for your scenario.
-3. Use [Prompt Components](components/index.md) to compose path/filter/transformer/code guidance.
+2. Use [Workflow JSON Task Catalog](task-catalog.md) to choose the generation chain for your scenario.
+3. Use [Generation Rule Components](components/index.md) for path/filter/transformer/code rules.

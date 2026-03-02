@@ -1,12 +1,12 @@
-# Path Prompts (`AIPathPromptType`)
+# Path and Source Rules
 
-Path prompts define how an AI should reference source and destination values in filters, variable extraction, and transformer instructions.
+This page defines how to reference source and destination values in filters, variable extraction, and transformer instructions.
 
-Use these whenever generated instructions include data access paths.
+Use these rules whenever generated instructions include data access paths.
 
 ---
 
-## Enum values
+## Rule source ids
 
 | Value | Purpose |
 |---|---|
@@ -31,9 +31,9 @@ Use these whenever generated instructions include data access paths.
 
 ---
 
-## Selector behavior (`GetPathPrompt(string filter)`)
+## Rule selection behavior
 
-`GetPathPrompt(string)` is token-driven:
+The built-in path rule selector is token-driven:
 
 - always includes `Paths`
 - adds `HL7Paths` when filter contains `hl7`
@@ -45,8 +45,8 @@ Use these whenever generated instructions include data access paths.
 
 ### Non-obvious outcome
 
-- `GetPathPrompt(string)` does not check for `sql`, so `SQLPaths` and `MirthSQLPaths` are not auto-included by the string selector.
-- If SQL-specific guidance is required, include it explicitly via `GetPathPrompt(AIPathPromptType.SQLPaths)` (and `MirthSQLPaths` for migrations).
+- The string selector does not check for `sql`, so `SQLPaths` and `MirthSQLPaths` are not auto-included.
+- If SQL-specific guidance is required, include `SQLPaths` explicitly (and `MirthSQLPaths` for migrations).
 
 ---
 
@@ -55,7 +55,7 @@ Use these whenever generated instructions include data access paths.
 ### Native workflow design (HL7 receiver -> JSON sender)
 
 - Filter text: `hl7 json`
-- Include returned prompt in:
+- Include selected rule text in:
   - receiver variable instruction generation
   - sender transformer instruction generation
   - filter instruction generation

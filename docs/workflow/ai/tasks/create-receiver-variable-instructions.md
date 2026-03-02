@@ -1,4 +1,4 @@
-# Prompt: CreateRecieverVariableInstructions (`AiFunctionType.CreateRecieverVariableInstructions`)
+# Task: Create Receiver Variable Instructions (`AiFunctionType.CreateRecieverVariableInstructions`)
 
 Turns receiver variable requirements into explicit variable-step instructions.
 
@@ -18,7 +18,7 @@ Turns receiver variable requirements into explicit variable-step instructions.
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Create receiver variable-transformer instruction text.

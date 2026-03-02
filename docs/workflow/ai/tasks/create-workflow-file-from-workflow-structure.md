@@ -1,4 +1,4 @@
-# Prompt: CreateWorkflowFileFromWorkflowStructure (`AiFunctionType.CreateWorkflowFileFromWorkflowStructure`)
+# Task: Create Workflow Settings List (`AiFunctionType.CreateWorkflowFileFromWorkflowStructure`)
 
 Creates concrete setting objects from a prepared `AiWorkflowStructure`.
 
@@ -19,7 +19,7 @@ Creates concrete setting objects from a prepared `AiWorkflowStructure`.
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Using this AiWorkflowStructure JSON, generate concrete Integration Soup setting objects.

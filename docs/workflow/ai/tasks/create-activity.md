@@ -1,4 +1,4 @@
-# Prompt: CreateActivity (`AiFunctionType.CreateActivity`)
+# Task: Create Activity Definition (`AiFunctionType.CreateActivity`)
 
 Generates a single activity definition from a focused activity requirement.
 
@@ -17,7 +17,7 @@ Generates a single activity definition from a focused activity requirement.
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Create one Integration Soup activity from this requirement.
@@ -62,5 +62,5 @@ Create a sender that emails ADT notifications. Use custom code because there is 
 
 For production workflow authoring, prefer:
 
-1. [CreateWorkflow](create-workflow.md)  
-2. [CreateWorkflowFileFromWorkflowStructure](create-workflow-file-from-workflow-structure.md)
+1. [Create Workflow Structure](create-workflow.md)  
+2. [Create Workflow Settings List](create-workflow-file-from-workflow-structure.md)

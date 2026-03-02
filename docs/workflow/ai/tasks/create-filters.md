@@ -1,4 +1,4 @@
-# Prompt: CreateFilters (`AiFunctionType.CreateFilters`)
+# Task: Create Message Filters (`AiFunctionType.CreateFilters`)
 
 Generates typed message filter objects from filter instruction text.
 
@@ -18,7 +18,7 @@ Generates typed message filter objects from filter instruction text.
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Create filter objects for this activity.
@@ -110,5 +110,5 @@ Execute only when patient/status equals Active.
 
 ## Related
 
-- [Filter Prompts](../components/filter-prompts.md)
-- [Path Prompts](../components/path-prompts.md)
+- [Filter Rules](../components/filter-rules.md)
+- [Path and Source Rules](../components/path-rules.md)

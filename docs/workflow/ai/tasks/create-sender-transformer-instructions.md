@@ -1,4 +1,4 @@
-# Prompt: CreateSenderTransformerInstructions (`AiFunctionType.CreateSenderTransformerInstructions`)
+# Task: Create Sender Transformer Instructions (`AiFunctionType.CreateSenderTransformerInstructions`)
 
 Expands sender transformation requirements into explicit instruction text.
 
@@ -17,7 +17,7 @@ Expands sender transformation requirements into explicit instruction text.
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Create sender transformer instruction text.

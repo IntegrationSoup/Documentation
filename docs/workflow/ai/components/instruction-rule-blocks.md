@@ -1,8 +1,8 @@
-# Embedded Prompt Blocks (Non-Function Entries)
+# Instruction Rule Building Blocks
 
-`AIPrompts.cs` includes reusable prompt blocks that are composed into system prompts but are not themselves `AiFunctionType` values.
+The AI workflow rule source includes reusable rule blocks that are composed into task behavior but are not direct task entries.
 
-These blocks are part of the effective prompt graph and must be considered when reproducing AI behavior outside the app.
+These blocks are part of effective generation behavior and should be included when reproducing workflow construction outside the app.
 
 ---
 
@@ -22,19 +22,19 @@ These blocks are part of the effective prompt graph and must be considered when 
 
 ---
 
-## Composition patterns in current system prompts
+## Composition patterns in current task behavior
 
 - `CreateWorkflow` uses `IntegrationWorkflowStructureGuide`.
-- `ImportWorkflow` and `CreateWorkflowFileFromWorkflowStructure` compose larger prompts that include receiver/sender activity blocks and shared guidance sections.
+- `ImportWorkflow` and `CreateWorkflowFileFromWorkflowStructure` compose larger rule sets that include receiver/sender activity blocks and shared guidance sections.
 - instruction-focused function types use their matching instruction block plus system-variable guidance.
 
 ---
 
 ## Practical implications for external AI orchestration
 
-If you are recreating prompt behavior in external tooling:
+If you are recreating generation behavior in external tooling:
 
-- include embedded blocks, not just top-level function prompt text
+- include embedded blocks, not just top-level task text
 - preserve composition order where possible (base guidance first, then scenario-specific instructions)
 - ensure variable/system blocks are included when generating instructions that reference `${...}` values
 

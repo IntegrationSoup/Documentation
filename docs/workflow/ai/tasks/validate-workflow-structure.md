@@ -1,14 +1,6 @@
-# Prompt: ValidateWorkflowStructure (`AiFunctionType.ValidateWorkflowStructure`)
+# Task: Validate Workflow Structure (`AiFunctionType.ValidateWorkflowStructure`)
 
 Validates faithfulness of current `AiWorkflowStructure` against user intent.
-
----
-
-## Prompt source
-
-- `Dialogs/AI/Prompts/ValidateWorkflowStructurePrompt.cs`
-
----
 
 ## Use when
 
@@ -35,7 +27,7 @@ Validates faithfulness of current `AiWorkflowStructure` against user intent.
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Validate this AiWorkflowStructure against the original user request.
@@ -76,4 +68,4 @@ Return only AiWorkflowStructureValidationResult JSON.
 ## Clarification behavior
 
 Validator can return required user questions when fidelity cannot be determined safely.  
-These answers are folded back into the prompt before next iteration.
+These answers are folded back into the next validation/refinement iteration.

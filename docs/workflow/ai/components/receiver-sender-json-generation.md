@@ -14,9 +14,9 @@ The rules are derived from the same behavior used by the AI workflow tooling, bu
 
 Use this with:
 
-- [WorkflowFile](../api/workflowfile.md)
-- [Transformer Setting](../reference/transformer-setting.md)
-- [Filter Host Setting](../reference/filter-host-setting.md)
+- [WorkflowFile](../../api/workflowfile.md)
+- [Transformer Setting](../../reference/transformer-setting.md)
+- [Filter Host Setting](../../reference/filter-host-setting.md)
 
 ---
 
@@ -43,25 +43,25 @@ Select exactly one receiver type and one type per sender action.
 
 | Integration intent | Use setting type | Activity doc |
 |---|---|---|
-| TCP / MLLP inbound | `MLLPReceiverSetting` | [MLLP Receiver](../receiver-activities/mllp-receiver.md) |
-| HTTP / REST inbound | `HttpReceiverSetting` | [HTTP Receiver](../receiver-activities/http-receiver.md) |
-| SOAP / WCF inbound | `WebServiceReceiverSetting` | [Web Service Receiver](../receiver-activities/web-service-receiver.md) |
-| Directory/file polling | `DirectoryScanReceiverSetting` | [Directory Scan Receiver](../receiver-activities/directory-scan-receiver.md) |
-| Database polling | `DatabaseReceiverSetting` | [Database Reader](../receiver-activities/database-reader.md) |
-| Scheduled trigger | `TimerReceiverSetting` | [Timer Receiver](../receiver-activities/timer-receiver.md) |
-| DICOM inbound | `DicomReceiverSetting` | [DICOM Receiver](../receiver-activities/dicom-receiver.md) |
+| TCP / MLLP inbound | `MLLPReceiverSetting` | [MLLP Receiver](../../receiver-activities/mllp-receiver.md) |
+| HTTP / REST inbound | `HttpReceiverSetting` | [HTTP Receiver](../../receiver-activities/http-receiver.md) |
+| SOAP / WCF inbound | `WebServiceReceiverSetting` | [Web Service Receiver](../../receiver-activities/web-service-receiver.md) |
+| Directory/file polling | `DirectoryScanReceiverSetting` | [Directory Scan Receiver](../../receiver-activities/directory-scan-receiver.md) |
+| Database polling | `DatabaseReceiverSetting` | [Database Reader](../../receiver-activities/database-reader.md) |
+| Scheduled trigger | `TimerReceiverSetting` | [Timer Receiver](../../receiver-activities/timer-receiver.md) |
+| DICOM inbound | `DicomReceiverSetting` | [DICOM Receiver](../../receiver-activities/dicom-receiver.md) |
 
 ### Sender mapping
 
 | Integration intent | Use setting type | Activity doc |
 |---|---|---|
-| TCP / MLLP outbound | `MLLPSenderSetting` | [MLLP Sender](../sender-activities/mllp-sender.md) |
-| HTTP / REST outbound | `HttpSenderSetting` | [HTTP Sender](../sender-activities/http-sender.md) |
-| SOAP / WCF outbound | `WebServiceSenderSetting` | [Web Service Sender](../sender-activities/web-service-sender.md) |
-| Write to file | `FileWriterSenderSetting` | [File Writer](../sender-activities/file-writer.md) |
-| SQL query/command sender | `DatabaseSenderSetting` | [Database Query](../sender-activities/database-query.md) |
-| DICOM outbound | `DicomSenderSetting` | [DICOM Sender](../sender-activities/dicom-sender.md) |
-| No native sender equivalent | `CodeSenderSetting` | [Code Sender](../sender-activities/code-sender.md) |
+| TCP / MLLP outbound | `MLLPSenderSetting` | [MLLP Sender](../../sender-activities/mllp-sender.md) |
+| HTTP / REST outbound | `HttpSenderSetting` | [HTTP Sender](../../sender-activities/http-sender.md) |
+| SOAP / WCF outbound | `WebServiceSenderSetting` | [Web Service Sender](../../sender-activities/web-service-sender.md) |
+| Write to file | `FileWriterSenderSetting` | [File Writer](../../sender-activities/file-writer.md) |
+| SQL query/command sender | `DatabaseSenderSetting` | [Database Query](../../sender-activities/database-query.md) |
+| DICOM outbound | `DicomSenderSetting` | [DICOM Sender](../../sender-activities/dicom-sender.md) |
+| No native sender equivalent | `CodeSenderSetting` | [Code Sender](../../sender-activities/code-sender.md) |
 
 Hard rule: there is no code receiver.
 
@@ -90,7 +90,7 @@ When you assemble the final workflow settings array:
 3. any referenced GUIDs in activity links must point to objects present in the same file
 4. filter/transformer host references are attached after activity setting generation
 
-Keep top-level workflow metadata aligned with the receiver identity (see [WorkflowFile](../api/workflowfile.md)).
+Keep top-level workflow metadata aligned with the receiver identity (see [WorkflowFile](../../api/workflowfile.md)).
 
 ---
 

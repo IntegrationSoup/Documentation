@@ -1,14 +1,6 @@
-# Prompt: RefineWorkflowStructure (`AiFunctionType.RefineWorkflowStructure`)
+# Task: Refine Workflow Structure (`AiFunctionType.RefineWorkflowStructure`)
 
 Repairs `AiWorkflowStructure` based on validator findings.
-
----
-
-## Prompt source
-
-- `Dialogs/AI/Prompts/RefineWorkflowStructurePrompt.cs`
-
----
 
 ## Use when
 
@@ -24,7 +16,7 @@ Repairs `AiWorkflowStructure` based on validator findings.
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Repair this AiWorkflowStructure using the validation result.

@@ -1,4 +1,4 @@
-# Prompt: CreateWorkflow (`AiFunctionType.CreateWorkflow`)
+# Task: Create Workflow Structure (`AiFunctionType.CreateWorkflow`)
 
 Builds `AiWorkflowStructure` from natural-language requirements.
 
@@ -22,7 +22,7 @@ This is the planning step for workflow generation.
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Create an Integration Soup workflow structure from the requirements below.
@@ -151,6 +151,6 @@ CSV columns: [0]=MRN, [1]=LastName, [2]=FirstName, [3]=DOB.
 
 ## Next pipeline step
 
-1. [ValidateWorkflowStructure](validate-workflow-structure.md)
-2. [RefineWorkflowStructure](refine-workflow-structure.md) if needed
-3. [CreateWorkflowFileFromWorkflowStructure](create-workflow-file-from-workflow-structure.md)
+1. [Validate Workflow Structure](validate-workflow-structure.md)
+2. [Refine Workflow Structure](refine-workflow-structure.md) if needed
+3. [Create Workflow Settings List](create-workflow-file-from-workflow-structure.md)

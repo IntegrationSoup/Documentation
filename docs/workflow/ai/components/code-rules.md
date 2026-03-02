@@ -1,12 +1,12 @@
-# Code Prompts (`AICodePromptType`)
+# Code Rules
 
-Code prompts define constraints and API guidance for generating C# used by code-based transformations.
+This page defines constraints and API guidance for generating C# used by code-based transformations.
 
-Use these with `CreateCodeTransformers`.
+Use these with code-transformation generation tasks.
 
 ---
 
-## Enum values
+## Rule source ids
 
 | Value | Purpose |
 |---|---|
@@ -16,7 +16,7 @@ Use these with `CreateCodeTransformers`.
 
 ---
 
-## Selector behavior (`GetCodePrompt(string filter)`)
+## Rule selection behavior
 
 - always includes `Code`
 - adds `MirthCode` when `filter` contains `mirth`
@@ -24,7 +24,7 @@ Use these with `CreateCodeTransformers`.
 ### Non-obvious outcome
 
 - selector is binary (base vs base+Mirth), not task-granular.
-- if you need both transformer-shape guidance and code-style guidance, combine this with transformer prompts in the same generation request.
+- if you need both transformer-shape guidance and code-style guidance, combine this with transformer rules in the same generation request.
 
 ---
 

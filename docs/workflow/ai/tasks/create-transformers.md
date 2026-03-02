@@ -1,4 +1,4 @@
-# Prompt: CreateTransformers (`AiFunctionType.CreateTransformers`)
+# Task: Create Transformer Actions (`AiFunctionType.CreateTransformers`)
 
 Generates typed transformer action objects from instruction text.
 
@@ -19,7 +19,7 @@ Generates typed transformer action objects from instruction text.
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Create transformer action objects for this activity.
@@ -114,6 +114,6 @@ ${PatientId} from patient/id
 
 ## Related
 
-- [CreateSenderTransformerInstructions](create-sender-transformer-instructions.md)
-- [CreateRecieverVariableInstructions](create-receiver-variable-instructions.md)
-- [Transformer Prompts](../components/transformer-prompts.md)
+- [Create Sender Transformer Instructions](create-sender-transformer-instructions.md)
+- [Create Receiver Variable Instructions](create-receiver-variable-instructions.md)
+- [Transformer Rules](../components/transformer-rules.md)

@@ -1,12 +1,12 @@
-# Filter Prompts (`AIFilterPromptType`)
+# Filter Rules
 
-Filter prompts define pass/fail semantics and object-shape expectations when converting intent into concrete message filters.
+This page defines pass/fail semantics and object-shape expectations when converting intent into concrete message filters.
 
-Use these with `CreateFilters` and with instruction-generation functions that describe filter intent.
+Use these with message-filter generation and instruction-generation tasks that describe filter intent.
 
 ---
 
-## Enum values
+## Rule source ids
 
 | Value | Purpose |
 |---|---|
@@ -16,7 +16,7 @@ Use these with `CreateFilters` and with instruction-generation functions that de
 
 ---
 
-## Selector behavior (`GetFilterPrompt(string filter)`)
+## Rule selection behavior
 
 - always includes `Filters`
 - adds `MirthFilters` when `filter` contains `mirth`

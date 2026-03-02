@@ -1,4 +1,4 @@
-# Prompt: ImportWorkflow (`AiFunctionType.ImportWorkflow`)
+# Task: Import Workflow Definition (`AiFunctionType.ImportWorkflow`)
 
 Generates concrete activity settings from an external workflow description (for example Mirth).
 
@@ -19,7 +19,7 @@ Generates concrete activity settings from an external workflow description (for 
 
 ---
 
-## Prompt template (copy/paste)
+## Instruction input template (copy/paste)
 
 ```text
 Import this workflow into Integration Soup setting objects.

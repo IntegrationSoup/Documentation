@@ -18,7 +18,7 @@ For executable workflow JSON, use [WorkflowFile](../api/workflowfile.md).
 
 ```mermaid
 flowchart LR
-    A[User Prompt] --> B[GetAIWorkflowStructureFromAiApi]
+    A[User Requirements] --> B[GetAIWorkflowStructureFromAiApi]
     B --> C[AiWorkflowStructure JSON]
     C --> D[Validate + Refine]
     D --> E[Create Receiver/Sender Settings]
@@ -128,7 +128,7 @@ Runtime-only property (not part of the schema-driven AI response contract):
 | `ReceiverActivity` | object | Required planning description of the source/receiver stage. |
 | `SenderActivities` | array | Ordered list of sender stage plans. |
 | `GlobalVariables` | array of string | Names of global variables referenced by the design/import context. |
-| `ImportedFrom` | string | Runtime metadata for import context (for example `Mirth`), used for prompting and conversion hints. |
+| `ImportedFrom` | string | Runtime metadata for import context (for example `Mirth`), used for conversion hints. |
 
 ## `AiReceiverActivity`
 
@@ -182,7 +182,7 @@ Runtime-only property (not part of the schema-driven AI response contract):
 
 ## Pseudo-enum value conventions
 
-These are string conventions used by prompts and validation, not strongly typed C# enums in this contract.
+These are string conventions used by generation and validation, not strongly typed C# enums in this contract.
 
 `ReceiverActivity.MessageSource`:
 - `TCP`
@@ -213,23 +213,13 @@ These are string conventions used by prompts and validation, not strongly typed 
 
 ## API surface
 
-Primary API call that returns this structure:
+Primary API call returns this structure from:
 
-```csharp
-Task<string> GetAIWorkflowStructureFromAiApi(
-    string userPrompt,
-    string systemPrompt,
-    string model)
-```
+- user requirements text
+- system rule text
+- model identifier
 
-Companion validation call used during iterative correction:
-
-```csharp
-Task<string> GetAiWorkflowStructureValidationResultFromAiApi(
-    string userPrompt,
-    string systemPrompt,
-    string model)
-```
+Companion validation call uses the same inputs and returns a validation result object used for iterative correction.
 
 Key behavior:
 - The structure API is schema-driven.
@@ -243,7 +233,7 @@ Key behavior:
 - `ImportedFrom` is intentionally excluded from the schema used by `GetAIWorkflowStructureFromAiApi`; treat it as runtime/import context metadata.
 - `GlobalVariables` is captured in this structure, but this stage does not directly create global variable definitions in host storage.
 - IDs are normalized with GUID generation when missing/invalid (`EnsureIdIsValid`), so caller-provided IDs are hints, not guaranteed final IDs.
-- `PreFilter` participates in prompt context, but there is no direct one-to-one materialization step that creates a dedicated pre-filter setting object from this field.
+- `PreFilter` participates in planning context, but there is no direct one-to-one materialization step that creates a dedicated pre-filter setting object from this field.
 - Schema generation for this call suppresses properties named `Filters` and `Transformers`; those fields may still exist in JSON, but they are not strongly enforced by the schema in this API step.
 - Receiver/sender transformer description enrichment currently updates the first set (`[0]`) in the dedicated description-refinement pass; additional sets are not rewritten in that pass.
 - Sender response template propagation is not force-applied in the same way as receiver template assignment; rely on sender-setting generation and transformer instructions for response behavior.
@@ -261,7 +251,7 @@ Key behavior:
 
 ---
 
-## AIPrompts-Driven Workflow File Authoring (Multi-Activity)
+## AI-Driven Workflow File Authoring (Multi-Activity)
 
 This section is the practical recipe an AI can follow to build an importable workflow file.
 
@@ -278,7 +268,7 @@ Use this when the target output is a `.hl7Workflow` file (JSON payload) with one
 
 This matches the staged behavior in the AI flow and avoids most structural errors.
 
-## Hard rules extracted from `AIPrompts`
+## Hard generation rules
 
 1. Exactly one receiver per workflow.
 2. Receiver runs first; senders run in order.
@@ -400,7 +390,7 @@ Use this as a structure template, then fill sender/receiver-specific properties 
 7. `WorkflowId` equals receiver `Id`.
 8. JSON is UTF-8 and saved as `*.hl7Workflow`.
 
-## Prompting template for external AI generation
+## Instruction template for external AI generation
 
 Use this structure for high-faithfulness results:
 
