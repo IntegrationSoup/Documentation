@@ -1,6 +1,6 @@
 # Prompt: RefineWorkflowStructure (`AiFunctionType.RefineWorkflowStructure`)
 
-Repairs `AiWorkflowStructure` JSON according to validator issues while preserving user intent.
+Repairs `AiWorkflowStructure` based on validator findings.
 
 ---
 
@@ -10,22 +10,62 @@ Repairs `AiWorkflowStructure` JSON according to validator issues while preservin
 
 ---
 
-## Input intent
+## Use when
 
-- original user request
-- current structure JSON
-- validation issues and required fixes
+- validator returns `IsFaithful = false`
+- validator provides issues/suggested changes
 
 ---
 
 ## Output contract
 
 - corrected `AiWorkflowStructure` JSON only
+- no prose
 
 ---
 
-## Core expectation
+## Prompt template (copy/paste)
 
-- apply minimal changes required to restore faithfulness
-- keep templates intact
-- enforce schema and scenario constraints
+```text
+Repair this AiWorkflowStructure using the validation result.
+
+Original user request:
+...
+
+Current AiWorkflowStructure JSON:
+...
+
+Validation result:
+...
+
+Rules:
+- preserve templates exactly
+- apply minimal changes required
+- remove unknown or invalid fields
+- keep one receiver and ordered sender activities
+
+Return only corrected AiWorkflowStructure JSON.
+```
+
+---
+
+## Example (fixing receiver source + filter)
+
+## Input summary
+
+- Current structure uses `MessageSource = "HTTP"` but request requires TCP.
+- ADT-only sender filter missing.
+
+## Output changes
+
+- `ReceiverActivity.MessageSource` changed to `TCP`
+- receiver instructions updated with TCP port
+- sender filter inserted: `Continue only when MSH-9.1 equals 'ADT'`
+
+---
+
+## Common failure modes
+
+- over-correcting fields unrelated to reported issues
+- dropping message templates during repair
+- returning commentary instead of pure JSON

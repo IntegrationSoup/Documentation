@@ -24,6 +24,36 @@ Use [AI Workflow Structure (AiWorkflowStructure)](ai-workflow-structure.md) as t
 
 ---
 
+## Quickstart prompt chains
+
+### A. New workflow from requirements
+
+1. `CreateWorkflow`
+2. `ValidateWorkflowStructure`
+3. `RefineWorkflowStructure` (if needed)
+4. `CreateWorkflowFileFromWorkflowStructure`
+5. `CreateFilters`
+6. `CreateTransformers`
+7. `CreateCodeTransformers` (only if code steps are required)
+
+### B. Import/migration workflow
+
+1. `ImportWorkflow`
+2. `CreateReceiverVariableInstructions` (if extraction text is weak or missing)
+3. `CreateSenderTransformerInstructions` (if sender mapping text is weak or missing)
+4. `CreateRecieverResponseTransfomerInstructions` (if custom receiver response behavior is needed)
+5. `CreateFilters`
+6. `CreateTransformers` and `CreateCodeTransformers` as required
+
+### C. Add one activity to existing workflow
+
+1. `CreateActivity`
+2. `CreateFilters` (activity-specific)
+3. `CreateTransformers`
+4. `CreateCodeTransformers` (optional)
+
+---
+
 ## Prompt groups to use
 
 - Function prompts (`AiFunctionType`): scenario-level system prompts.
@@ -43,14 +73,10 @@ Use [AI Workflow Structure (AiWorkflowStructure)](ai-workflow-structure.md) as t
 
 ---
 
-## What this first pass covers
+## Operational rules
 
-- every `AiFunctionType` scenario has a dedicated page
-- every prompt family enum has a dedicated page
-- import and workflow-file creation scenarios are documented separately
-- prompt storage/override mechanics are documented
-
-Later refinement pass can add:
-- richer examples for each scenario
-- reusable prompt templates per message type
-- strict validation checklists per activity type
+- Keep planning (`AiWorkflowStructure`) separate from concrete setting generation.
+- Generate settings first, then attach filters/transformers.
+- Use path prompt components for every instruction that includes field access.
+- For Mirth conversions, include `mirth` in selector filters to pull conversion guidance.
+- Preserve message templates exactly when provided by user/import source.

@@ -1,25 +1,84 @@
 # Prompt: CreateRecieverResponseTransfomerInstructions (`AiFunctionType.CreateRecieverResponseTransfomerInstructions`)
 
-Expands receiver response-transform instruction text for final response construction.
+Expands final response transformation instructions executed after sender processing.
 
 ---
 
-## Input intent
+## Use when
 
-- response requirements
-- returned message template intent
-- full workflow context for response-stage mapping decisions
+- custom response content is required
+- receiver must return transformed sender/variable data to caller
 
 ---
 
 ## Output contract
 
-- instruction text for `AiReceiverActivity.ReturnedMessageTransformers[i].Instruction`
+- plain instruction text for `AiReceiverActivity.ReturnedMessageTransformers[i].Instruction`
 
 ---
 
-## Core expectation
+## Prompt template (copy/paste)
 
-- detailed response mapping logic
-- preserve message templates exactly
-- align response behavior with receiver protocol expectations (default vs custom)
+```text
+Create receiver response-transformer instruction text.
+
+Receiver type/message type:
+- ...
+
+Returned message template (exact if provided):
+- ...
+
+Data sources available for response:
+- Receiver inbound
+- Sender outputs
+- Variables
+
+Constraints:
+- do not modify templates
+- provide explicit map/update/format steps
+- state source activity when not receiver inbound
+
+Return only instruction text.
+```
+
+---
+
+## Example 1 (custom JSON response)
+
+## Input
+
+```text
+Return HTTP 200 JSON body with patientId from inbound and status from sender "WriteInbound".
+```
+
+## Output
+
+```text
+From Receiver:
+Map patient/id to response/patientId
+From 'WriteInbound':
+Map status to response/status
+Update response/result to 'ok'
+```
+
+## Example 2 (custom HL7 ACK variant)
+
+## Input
+
+```text
+Return custom ACK with MSA-1='AA' and MSA-2 from inbound MSH-10.
+```
+
+## Output
+
+```text
+From Receiver:
+Map MSH-10 to MSA-2
+Update MSA-1 to 'AA'
+```
+
+---
+
+## Protocol note
+
+For standard HL7 over TCP/MLLP, auto-generated response is usually preferred unless custom behavior is explicitly requested.

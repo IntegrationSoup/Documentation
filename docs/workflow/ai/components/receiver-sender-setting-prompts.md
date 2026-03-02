@@ -1,6 +1,11 @@
 # Receiver/Sender Prompt Blocks
 
-These prompt blocks drive type selection and setting-property generation for concrete activities.
+These prompt blocks control two critical phases:
+
+1. choosing the concrete activity type
+2. producing serialized JSON settings for that type
+
+Use this layer after planning (`AiWorkflowStructure`) and before filter/transformer attachment.
 
 ---
 
@@ -9,13 +14,21 @@ These prompt blocks drive type selection and setting-property generation for con
 - `DefaultDetermineReceiverType`
 - `DefaultDetermineSenderType`
 
-Purpose:
-- select exactly one concrete receiver/sender class from supplied result options
-- return only the selected type string
+### Expected behavior
 
-Expected behavior:
-- map intent terms (`TCP`, `REST`, `SOAP`) to product activity families
-- fallback to `Code` sender where there is no native equivalent
+- choose exactly one option from provided type candidates
+- return only the selected type name/value
+- map intent aliases:
+  - `TCP` -> MLLP family
+  - `REST`/`HTTP` -> HTTP family
+  - `SOAP`/`WCF` -> WebService family
+- choose `Code` sender when no native equivalent exists
+
+### Failure modes to avoid
+
+- returning prose instead of a single type selection
+- returning a type not present in the provided result options
+- selecting multiple candidates
 
 ---
 
@@ -23,25 +36,48 @@ Expected behavior:
 
 - `DefaultCreateReceiverSetting`
 - `DefaultCreateSenderSetting`
-- `CreateReceiverSetting(Type type)` -> merges base prompt + type description
-- `CreateSenderSetting(Type type)` -> merges base prompt + type description
+- `CreateReceiverSetting(Type type)` (base prompt + type-specific description)
+- `CreateSenderSetting(Type type)` (base prompt + type-specific description)
 
-Purpose:
-- generate one serialized setting object for the selected type
-- include only relevant properties
-- avoid generating filters/transformers in this step
+### Output contract
+
+- emit one serialized setting object
+- include only known serialized properties for the chosen class
+- omit unknown values rather than inventing defaults
+- do not generate filters or transformers at this stage
+- if a message template is supplied, preserve it exactly
+
+### Failure modes to avoid
+
+- adding non-serialized/internal-only properties
+- embedding transformation logic into generic activity instructions
+- modifying provided message templates
 
 ---
 
-## Embedded scenario blocks
+## Embedded scenario blocks used by system prompts
 
-Used inside `ImportWorkflow` and `CreateWorkflowFileFromWorkflowStructure` system prompts:
+Used by `ImportWorkflow` and `CreateWorkflowFileFromWorkflowStructure` system prompts:
 
-- `CreateReceiverActivities` (one receiver only)
-- `CreateSendersActivities` (multiple senders supported)
+- `CreateReceiverActivities`
+- `CreateSendersActivities`
 
-These include:
-- type-specific property guidance
-- examples
-- message type value guidance
-- full type naming expectations
+These blocks provide:
+
+- activity-family intent mapping
+- one-receiver-only workflow rule
+- multi-sender guidance
+- message type guidance
+- qualified type naming expectations for generated setting objects
+
+---
+
+## Recommended generation sequence
+
+1. determine receiver type
+2. generate receiver setting JSON
+3. determine each sender type
+4. generate each sender setting JSON
+5. attach filter host/transformer host references in assembly stage
+
+Do not collapse these into a single unconstrained prompt if deterministic output is required.

@@ -1,6 +1,6 @@
 # Prompt: ValidateWorkflowStructure (`AiFunctionType.ValidateWorkflowStructure`)
 
-Validates whether current `AiWorkflowStructure` faithfully implements the original user request.
+Validates faithfulness of current `AiWorkflowStructure` against user intent.
 
 ---
 
@@ -10,20 +10,70 @@ Validates whether current `AiWorkflowStructure` faithfully implements the origin
 
 ---
 
-## Input intent
+## Use when
 
-- original user request
-- current `AiWorkflowStructure` JSON
-- original workflow-generation context
+- after `CreateWorkflow`
+- after each repair iteration
 
 ---
 
 ## Output contract
 
-- structured validation result (`isFaithful`, issues, suggested changes, optional clarification questions)
+`AiWorkflowStructureValidationResult` shape:
+
+```json
+{
+  "IsFaithful": true,
+  "Issues": [],
+  "SuggestedChanges": [],
+  "Questions": [],
+  "MaxQuestions": 3,
+  "QuestionsWereTruncated": false,
+  "TruncationNote": ""
+}
+```
 
 ---
 
-## Usage note
+## Prompt template (copy/paste)
 
-This prompt drives the iterative repair loop and can trigger clarification questions before refinement.
+```text
+Validate this AiWorkflowStructure against the original user request.
+
+Original user request:
+...
+
+Current AiWorkflowStructure JSON:
+...
+
+Return only AiWorkflowStructureValidationResult JSON.
+```
+
+---
+
+## Example (fail result with required fixes)
+
+```json
+{
+  "IsFaithful": false,
+  "Issues": [
+    "Receiver says HTTP but requirement says TCP.",
+    "Sender 2 missing ADT filter requirement."
+  ],
+  "SuggestedChanges": [
+    "Set ReceiverActivity.MessageSource to TCP and include port in instructions.",
+    "Add sender filter: Continue only when MSH-9.1 equals 'ADT'."
+  ],
+  "Questions": [],
+  "MaxQuestions": 3,
+  "QuestionsWereTruncated": false,
+  "TruncationNote": ""
+}
+```
+
+---
+
+## Clarification behavior
+
+Validator can return required user questions when fidelity cannot be determined safely.  
+These answers are folded back into the prompt before next iteration.

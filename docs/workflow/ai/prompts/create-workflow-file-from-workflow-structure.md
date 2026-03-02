@@ -1,33 +1,96 @@
 # Prompt: CreateWorkflowFileFromWorkflowStructure (`AiFunctionType.CreateWorkflowFileFromWorkflowStructure`)
 
-Generates concrete activity setting objects intended for final `WorkflowFile` composition.
+Creates concrete setting objects from a prepared `AiWorkflowStructure`.
 
 ---
 
-## Input intent
+## Use when
 
-- an already-defined structure (typically from `CreateWorkflow`)
-- receiver/sender requirements and templates
-- activity sequencing and cross-activity references
+- you already have a validated `AiWorkflowStructure`
+- you need concrete receiver/sender settings for final `WorkflowFile`
 
 ---
 
 ## Output contract
 
-- JSON list of concrete `ISetting` objects
-- receiver first
-- sender activities following
+- return JSON array of concrete `ISetting` objects
+- first object is receiver
+- subsequent objects are senders
 
 ---
 
-## Prompt characteristics
+## Prompt template (copy/paste)
 
-- shares major guidance blocks with `ImportWorkflow`
-- emphasizes class selection and serialized-property completeness
-- includes type and GUID formatting constraints
+```text
+Using this AiWorkflowStructure JSON, generate concrete Integration Soup setting objects.
+
+AiWorkflowStructure:
+{ ... }
+
+Constraints:
+- receiver first, then senders in declared order
+- full $type names only
+- preserve templates exactly
+- do not create explanatory text
+
+Return only JSON array of settings.
+```
 
 ---
 
-## Follow-up requirement
+## Example input
 
-After this step, filter and transformer host/settings objects must still be wired correctly and appended to `WorkflowPattern`.
+```json
+{
+  "ReceiverActivity": {
+    "MessageSource": "HTTP",
+    "MessageType": "JSON",
+    "Instructions": "Listen on /api/inbound"
+  },
+  "SenderActivities": [
+    {
+      "SenderAction": "Database",
+      "Name": "WriteInbound",
+      "MessageType": "SQL",
+      "Instructions": "Insert into AuditLog",
+      "MessageTemplate": "INSERT INTO AuditLog (Payload) VALUES (@Payload)"
+    }
+  ]
+}
+```
+
+## Example output (shape)
+
+```json
+[
+  {
+    "$type": "HL7Soup.Functions.Settings.Receivers.HttpReceiverSetting, HL7SoupWorkflow",
+    "Id": "11111111-1111-1111-1111-111111111111",
+    "Name": "HTTP Receiver",
+    "MessageType": 12,
+    "Port": 8080,
+    "ServiceName": "api/inbound",
+    "Activities": [
+      "22222222-2222-2222-2222-222222222222"
+    ]
+  },
+  {
+    "$type": "HL7Soup.Functions.Settings.Senders.DatabaseSenderSetting, HL7SoupWorkflow",
+    "Id": "22222222-2222-2222-2222-222222222222",
+    "Name": "WriteInbound",
+    "MessageType": 13,
+    "MessageTemplate": "INSERT INTO AuditLog (Payload) VALUES (@Payload)"
+  }
+]
+```
+
+---
+
+## Important assembly reminder
+
+This function output is activity objects only.  
+Final workflow-file composition still needs:
+
+- filter host objects for activity `Filters` references
+- transformer setting objects for activity `Transformers`/`VariableTransformers` references
+- top-level `WorkflowFile` wrapper with `WorkflowPattern`

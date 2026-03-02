@@ -1,22 +1,66 @@
 # Prompt: CreateActivity (`AiFunctionType.CreateActivity`)
 
-Activity-generation scenario for custom or direct activity creation requests.
+Generates a single activity definition from a focused activity requirement.
 
 ---
 
-## Input intent
+## Use when
 
-- request to create a single activity definition from description
+- the user explicitly requests one activity, not a full workflow
+- prototyping a custom activity behavior before integrating into full pipeline
 
 ---
 
 ## Output contract
 
-- activity-level definition suitable for follow-up serialization/mapping into workflow settings
+- one activity-level definition that can be embedded in later workflow assembly
 
 ---
 
-## Notes
+## Prompt template (copy/paste)
 
-- this prompt is intentionally minimal
-- practical workflow construction usually uses the broader workflow prompts first (`CreateWorkflow`, then materialization)
+```text
+Create one Integration Soup activity from this requirement.
+
+Activity role:
+- Receiver or Sender:
+- Purpose:
+- Message type:
+- Transport/storage details:
+- Template (if applicable):
+
+Return only the activity JSON definition.
+```
+
+---
+
+## Example (Code sender fallback)
+
+## Input
+
+```text
+Create a sender that emails ADT notifications. Use custom code because there is no native email sender.
+```
+
+## Output (shape)
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.CodeSenderSetting, HL7SoupWorkflow",
+  "Id": "11111111-1111-1111-1111-111111111111",
+  "Name": "Email Notification",
+  "MessageType": 7,
+  "Comment": "Send email for ADT events",
+  "Code": "// Create and send email using SMTP client",
+  "UseResponse": false
+}
+```
+
+---
+
+## Practical note
+
+For production workflow authoring, prefer:
+
+1. [CreateWorkflow](create-workflow.md)  
+2. [CreateWorkflowFileFromWorkflowStructure](create-workflow-file-from-workflow-structure.md)

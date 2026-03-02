@@ -4,6 +4,29 @@ This page maps prompt scenarios in `AIPrompts.cs` to documentation pages in this
 
 ---
 
+## Recommended chains
+
+### Build new workflow
+
+1. [CreateWorkflow](prompts/create-workflow.md)
+2. [ValidateWorkflowStructure](prompts/validate-workflow-structure.md)
+3. [RefineWorkflowStructure](prompts/refine-workflow-structure.md) (if validation fails)
+4. [CreateWorkflowFileFromWorkflowStructure](prompts/create-workflow-file-from-workflow-structure.md)
+5. [CreateFilters](prompts/create-filters.md)
+6. [CreateTransformers](prompts/create-transformers.md)
+7. [CreateCodeTransformers](prompts/create-code-transformers.md) (optional)
+
+### Import/migration flow
+
+1. [ImportWorkflow](prompts/import-workflow.md)
+2. [CreateRecieverVariableInstructions](prompts/create-receiver-variable-instructions.md)
+3. [CreateSenderTransformerInstructions](prompts/create-sender-transformer-instructions.md)
+4. [CreateRecieverResponseTransfomerInstructions](prompts/create-receiver-response-transformer-instructions.md) (if custom response required)
+5. [CreateFilters](prompts/create-filters.md)
+6. [CreateTransformers](prompts/create-transformers.md)
+
+---
+
 ## Function prompts (`AiFunctionType`)
 
 | Function | Purpose | Doc |
