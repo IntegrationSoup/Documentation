@@ -59,3 +59,15 @@ This site covers:
 - Execution model details  
 
 Use the navigation menu to explore workflow concepts, activity specifications, variables, and detailed examples.
+
+---
+
+## Documentation Entry Points
+
+- [Workflow Documentation](workflow/index.md)
+- [Receiver Activities](workflow/receiver-activities/index.md)
+- [Sender Activities](workflow/sender-activities/index.md)
+- [Workflow API](workflow/api/index.md)
+- [Workflow Reference](workflow/reference/index.md)
+- [AI Workflow Authoring](workflow/ai/index.md)
+- [Sitemap](sitemap.md)
