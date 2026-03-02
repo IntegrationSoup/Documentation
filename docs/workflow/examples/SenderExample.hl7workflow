@@ -1,0 +1,96 @@
+{
+  "Comments": "Tutorial example based on integrationhostgettingstarted.html",
+  "Modified": "2026-03-02T00:00:00Z",
+  "Name": "SenderExample - HL7 Files to CSV",
+  "WorkflowId": "0a5f2d29-9bf8-4fe5-b6f0-b8d303adf001",
+  "WorkflowPattern": [
+    {
+      "$type": "HL7Soup.Functions.Settings.Receivers.DirectoryScanReceiverSetting, HL7SoupWorkflow",
+      "DirectoryPath": "C:\\mywatchfolder",
+      "DirectoryFilter": "*.hl7",
+      "SearchForNewFiles": true,
+      "DeleteFileOnComplete": false,
+      "MoveIntoDirectoryOnComplete": false,
+      "DirectoryToMoveInto": "",
+      "DirectoryToMoveIntoOnError": "",
+      "Activities": [
+        "0a5f2d29-9bf8-4fe5-b6f0-b8d303adf002"
+      ],
+      "MessageType": 1,
+      "ReceivedMessageTemplate": "",
+      "VariableTransformers": "0a5f2d29-9bf8-4fe5-b6f0-b8d303adf003",
+      "WorkflowPatternName": "SenderExample - HL7 Files to CSV",
+      "Id": "0a5f2d29-9bf8-4fe5-b6f0-b8d303adf001",
+      "Name": "Read HL7 From Folder",
+      "Version": 2
+    },
+    {
+      "$type": "HL7Soup.Functions.Settings.Senders.FileWriterSenderSetting, HL7SoupWorkflow",
+      "FilePathToWrite": "C:\\myoutputfolder\\output.csv",
+      "MoveIntoDirectoryOnComplete": false,
+      "DirectoryToMoveInto": "",
+      "MaxRecordsPerFile": 5000,
+      "MessageTemplate": "${PatientId},${LastName},${FirstName},${DateOfBirth},${Gender}",
+      "MessageType": 5,
+      "MessageTypeOptions": {
+        "$type": "HL7Soup.Workflow.MessageTypeOptions.CSVMessageTypeOption, HL7SoupWorkflow",
+        "Header": "PatientId,LastName,FirstName,DateOfBirth,Gender"
+      },
+      "Id": "0a5f2d29-9bf8-4fe5-b6f0-b8d303adf002",
+      "Name": "Write CSV Output",
+      "Version": 2
+    },
+    {
+      "$type": "HL7Soup.Functions.Settings.TransformerSetting, HL7SoupWorkflow",
+      "Transformers": [
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateVariableTransformerAction, HL7SoupWorkflow",
+          "VariableName": "PatientId",
+          "SampleVariableValue": "454721",
+          "FromPath": "PID-3.1",
+          "FromSetting": "0a5f2d29-9bf8-4fe5-b6f0-b8d303adf001",
+          "FromType": 1,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateVariableTransformerAction, HL7SoupWorkflow",
+          "VariableName": "LastName",
+          "SampleVariableValue": "Brown",
+          "FromPath": "PID-5.1",
+          "FromSetting": "0a5f2d29-9bf8-4fe5-b6f0-b8d303adf001",
+          "FromType": 1,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateVariableTransformerAction, HL7SoupWorkflow",
+          "VariableName": "FirstName",
+          "SampleVariableValue": "Sam",
+          "FromPath": "PID-5.2",
+          "FromSetting": "0a5f2d29-9bf8-4fe5-b6f0-b8d303adf001",
+          "FromType": 1,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateVariableTransformerAction, HL7SoupWorkflow",
+          "VariableName": "DateOfBirth",
+          "SampleVariableValue": "19780203",
+          "FromPath": "PID-7.1",
+          "FromSetting": "0a5f2d29-9bf8-4fe5-b6f0-b8d303adf001",
+          "FromType": 1,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateVariableTransformerAction, HL7SoupWorkflow",
+          "VariableName": "Gender",
+          "SampleVariableValue": "M",
+          "FromPath": "PID-8.1",
+          "FromSetting": "0a5f2d29-9bf8-4fe5-b6f0-b8d303adf001",
+          "FromType": 1,
+          "FromDirection": 0
+        }
+      ],
+      "Id": "0a5f2d29-9bf8-4fe5-b6f0-b8d303adf003",
+      "Version": 2
+    }
+  ]
+}

@@ -92,3 +92,5 @@ Last updated: 2026-03-02
 ## Examples
 
 - [Examples Index](workflow/examples/index.md)
+- [SenderExample.hl7workflow](workflow/examples/SenderExample.hl7workflow)
+- [SenderExamplePart2.hl7workflow](workflow/examples/SenderExamplePart2.hl7workflow)

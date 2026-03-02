@@ -1,0 +1,211 @@
+{
+  "Comments": "Tutorial example based on integrationhostgettingstartedpart2.html",
+  "Modified": "2026-03-02T00:00:00Z",
+  "Name": "SenderExample Part2 - JSON Files to HL7 over TCP",
+  "WorkflowId": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb101",
+  "WorkflowPattern": [
+    {
+      "$type": "HL7Soup.Functions.Settings.Receivers.DirectoryScanReceiverSetting, HL7SoupWorkflow",
+      "DirectoryPath": "C:\\mywatchfolder",
+      "DirectoryFilter": "*.json",
+      "SearchForNewFiles": true,
+      "DeleteFileOnComplete": false,
+      "MoveIntoDirectoryOnComplete": false,
+      "DirectoryToMoveInto": "",
+      "DirectoryToMoveIntoOnError": "",
+      "Activities": [
+        "2b7c5f44-e3d3-4ad1-8acd-665ca11cb102"
+      ],
+      "MessageType": 11,
+      "ReceivedMessageTemplate": "{\"Patient\":{\"Id\":\"123456\",\"FirstName\":\"John\",\"LastName\":\"Doe\",\"DOB\":\"19800203\",\"Gender\":\"M\",\"MaritalStatus\":\"Married\",\"Medications\":[{\"Code\":\"MED001\",\"Name\":\"Aspirin\"},{\"Code\":\"MED002\",\"Name\":\"Metformin\"}]}}",
+      "WorkflowPatternName": "SenderExample Part2 - JSON Files to HL7 over TCP",
+      "Id": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb101",
+      "Name": "Read JSON From Folder",
+      "Version": 2
+    },
+    {
+      "$type": "HL7Soup.Functions.Settings.Senders.MLLPSenderSetting, HL7SoupWorkflow",
+      "Server": "127.0.0.1",
+      "Port": 1234,
+      "FrameStart": [
+        "\u000b"
+      ],
+      "FrameEnd": [
+        "\u001c",
+        "\r"
+      ],
+      "TimeoutSeconds": 30,
+      "WaitForResponse": false,
+      "UseResponse": false,
+      "KeepConnectionOpen": false,
+      "Encoding": "utf-8",
+      "ResponseMessageTemplate": "",
+      "MessageTemplate": "MSH|^~\\&|IntegrationSoup|Tutorial|DownstreamSystem|ReceivingApp|${CurrentDateTime:yyyyMMddHHmmss}||ADT^A04|${WorkflowInstanceId}|P|2.5.1\rPID|1||^^^^MR||^^^^||\r",
+      "MessageType": 1,
+      "Transformers": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb103",
+      "Id": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb102",
+      "Name": "Send HL7 via TCP",
+      "Version": 2
+    },
+    {
+      "$type": "HL7Soup.Functions.Settings.TransformerSetting, HL7SoupWorkflow",
+      "Transformers": [
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateMappingTransformerAction, HL7SoupWorkflow",
+          "ToType": 1,
+          "ToPath": "PID-3.1",
+          "ToSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb102",
+          "ToDirection": 1,
+          "ToNamespaces": {},
+          "FromPath": "Patient/Id",
+          "FromNamespaces": {},
+          "FromSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb101",
+          "FromType": 11,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateMappingTransformerAction, HL7SoupWorkflow",
+          "ToType": 1,
+          "ToPath": "PID-7.1",
+          "ToSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb102",
+          "ToDirection": 1,
+          "ToNamespaces": {},
+          "FromPath": "Patient/DOB",
+          "FromNamespaces": {},
+          "FromSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb101",
+          "FromType": 11,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateMappingTransformerAction, HL7SoupWorkflow",
+          "ToType": 1,
+          "ToPath": "PID-8.1",
+          "ToSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb102",
+          "ToDirection": 1,
+          "ToNamespaces": {},
+          "FromPath": "Patient/Gender",
+          "FromNamespaces": {},
+          "FromSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb101",
+          "FromType": 11,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateVariableTransformerAction, HL7SoupWorkflow",
+          "VariableName": "FirstName",
+          "SampleVariableValue": "John",
+          "FromPath": "Patient/FirstName",
+          "FromSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb101",
+          "FromType": 11,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateVariableTransformerAction, HL7SoupWorkflow",
+          "VariableName": "LastName",
+          "SampleVariableValue": "Doe",
+          "FromPath": "Patient/LastName",
+          "FromSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb101",
+          "FromType": 11,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateVariableTransformerAction, HL7SoupWorkflow",
+          "VariableName": "FullName",
+          "SampleVariableValue": "Doe^John",
+          "FromPath": "${LastName}^${FirstName}",
+          "FromType": 7,
+          "FromDirection": 2
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateMappingTransformerAction, HL7SoupWorkflow",
+          "ToType": 1,
+          "ToPath": "PID-5",
+          "ToSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb102",
+          "ToDirection": 1,
+          "ToNamespaces": {},
+          "FromPath": "${FullName}",
+          "FromNamespaces": {},
+          "FromType": 7,
+          "FromDirection": 2
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.BeginConditionalTransformerAction, HL7SoupWorkflow",
+          "Filters": [
+            {
+              "$type": "HL7Soup.MessageFilters.StringMessageFilter, HL7SoupWorkflow",
+              "Path": "Patient/MaritalStatus",
+              "Comparer": 0,
+              "Value": "Married",
+              "CaseSensitive": false,
+              "Not": false,
+              "Conjunction": 0,
+              "FromSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb101",
+              "FromType": 11,
+              "FromDirection": 0,
+              "ToPath": "Married",
+              "ToType": 7,
+              "ToDirection": 2
+            }
+          ],
+          "PairId": 8,
+          "FromType": 1
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateMappingTransformerAction, HL7SoupWorkflow",
+          "ToType": 1,
+          "ToPath": "PID-16.1",
+          "ToSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb102",
+          "ToDirection": 1,
+          "ToNamespaces": {},
+          "FromPath": "M",
+          "FromNamespaces": {},
+          "FromType": 7,
+          "FromDirection": 2
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.EndConditionalTransformerAction, HL7SoupWorkflow",
+          "PairId": 8
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.ForEachTransformerAction, HL7SoupWorkflow",
+          "PairId": 11,
+          "FromPath": "Patient/Medications",
+          "FromSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb101",
+          "FromType": 11,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateVariableTransformerAction, HL7SoupWorkflow",
+          "VariableName": "MedicationCode",
+          "SampleVariableValue": "MED001",
+          "FromPath": "Patient/Medications[1]/Code",
+          "FromSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb101",
+          "FromType": 11,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.CreateVariableTransformerAction, HL7SoupWorkflow",
+          "VariableName": "MedicationName",
+          "SampleVariableValue": "Aspirin",
+          "FromPath": "Patient/Medications[1]/Name",
+          "FromSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb101",
+          "FromType": 11,
+          "FromDirection": 0
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.AppendLineTransformerAction, HL7SoupWorkflow",
+          "ToSetting": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb102",
+          "ToDirection": 1,
+          "FromPath": "RXA|${ForEachIterator}||${MedicationCode}^${MedicationName}",
+          "FromType": 7,
+          "FromDirection": 2
+        },
+        {
+          "$type": "HL7Soup.Functions.Settings.NextTransformerAction, HL7SoupWorkflow",
+          "PairId": 11
+        }
+      ],
+      "Id": "2b7c5f44-e3d3-4ad1-8acd-665ca11cb103",
+      "Version": 2
+    }
+  ]
+}
