@@ -1,15 +1,15 @@
-# Coding Context
+# Coding in Workflow Scripts
 
 This is the **complete reference** for writing C# code inside Integration Soup workflows using the **Code Transformer**.
 
-Everything you need to know — the `CodeContext`, helpers, message handling, variables, notifications, data tables, HL7-specific functions, extensions, and real-world patterns — is here.
+Everything you need to write practical workflow code is here: helpers, message handling, variables, notifications, data tables, HL7-specific functions, extensions, and real-world patterns.
 
 ---
 
 ## Table of Contents
 - [1. Introduction](#1-introduction)
 - [2. The Code Transformer](#2-the-code-transformer)
-- [3. The CodeContext Object](#3-the-codecontext-object)
+- [3. What You Can Use While Coding](#3-what-you-can-use-while-coding)
 - [4. Available Helpers & Extensions](#4-available-helpers--extensions)
 - [5. Working with Messages](#5-working-with-messages)
 - [6. Variables](#6-variables)
@@ -53,24 +53,26 @@ Transformers → Add → **Code**
 The code is compiled at **Prepare** time using Roslyn.  
 Any compilation error is shown immediately.
 
-The script runs inside a `CodeContext` instance.
+When your script runs, workflow APIs and helper methods are already available for you to call.
 
 ---
 
-## 3. The CodeContext Object
+## 3. What You Can Use While Coding
 
-You have **two** ways to access the context:
+You can write code in either of these styles:
 
 ```csharp
-// 1. Direct property (always available)
+// 1. Direct workflow object access
 workflowInstance.SetVariable("MyVar", "hello");
 
-// 2. Strongly-typed shortcuts (recommended – cleaner intellisense)
+// 2. Shortcut methods (recommended for readability)
 SetVariable("MyVar", "hello");
 GetVariable("PatientID");
 ```
 
-### Core Properties & Methods (from `CodeContext` and `ICodeContext`)
+Both styles work. In day-to-day use, shortcut methods are usually the easiest to read.
+
+### Core Properties & Methods Available in Script Code
 
 | Member                        | Type                  | Description |
 |-------------------------------|-----------------------|-----------|
