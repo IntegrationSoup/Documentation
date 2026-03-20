@@ -13,6 +13,7 @@ This section covers how to build workflows in Integration Soup Integration Host.
 
 - [Receiver Activities](receiver-activities/index.md)
 - [Sender Activities](sender-activities/index.md)
+- [Extension Libraries](extension-libraries/index.md)
 
 ## API and JSON Contracts
 
