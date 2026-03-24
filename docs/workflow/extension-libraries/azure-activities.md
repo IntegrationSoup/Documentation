@@ -1,8 +1,14 @@
 # Azure Activities
 
-The Azure Activities Extension Library adds the **Send Blob** activity to Integration Soup.
+The Azure Activities Extension Library adds Azure-specific workflow activities to Integration Soup.
 
-Use it to archive HL7 or FHIR messages, store text-based exports, or hand workflow output to another Azure-based process.
+## Activities included
+
+- **Send Blob**
+- **Azure Service Bus Sender**
+- **Azure Service Bus Receiver**
+
+Use this extension library to archive workflow output in Azure Blob Storage, publish messages to Azure Service Bus, or receive messages from Azure Service Bus.
 
 ## Download
 
@@ -13,9 +19,20 @@ Use it to archive HL7 or FHIR messages, store text-based exports, or hand workfl
 
 1. Install the MSI on the Integration Soup server.
 2. Restart the Integration Soup service if needed.
-3. Add **Send Blob** after the step that produces the text you want to upload.
-4. In the activity message template, use **Insert Activity Message** to bring in the text from the receiver or earlier activity.
-5. Fill in the Azure parameter fields below. For reused values, insert workflow or global variables.
+3. Restart the workflow host service if needed.
+4. Open the Workflow Designer. The Azure activities appear only after the extension is installed on the server you are connected to.
+5. Add the Azure activity you want to use.
+
+## Activity references
+
+- [Azure Service Bus Sender](../sender-activities/azure-service-bus-sender.md)
+- [Azure Service Bus Receiver](../receiver-activities/azure-service-bus-receiver.md)
+
+## Send Blob
+
+Add **Send Blob** after the step that produces the text you want to upload.
+
+In the activity message template, use **Insert Activity Message** to bring in the text from the receiver or earlier activity.
 
 ## Parameters
 
@@ -61,3 +78,5 @@ The response message is a **Text** message confirming the upload succeeded.
 - Archiving inbound or outbound messages to Azure
 - Publishing CSV, XML, JSON, or other text output to Blob Storage
 - Dropping workflow output where other Azure services will pick it up
+- Sending workflow messages to Azure Service Bus queues or topics
+- Receiving inbound Azure Service Bus messages into a workflow

@@ -24,6 +24,9 @@
 
 A **variable** is a named piece of data that lives for the entire lifetime of **one workflow instance**.
 
+This page focuses on workflow-instance variables created and used during a workflow run.
+
+For host-scoped Global Variables such as shared text values, secrets, and connection strings, see [Global Variables](reference/global-variables.md).
 
 **Three kinds** (see `VariableTypes` enum):
 

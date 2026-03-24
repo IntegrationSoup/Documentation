@@ -3,6 +3,7 @@
 Shared workflow definitions and reusable JSON contract references.
 
 - [Workflow Enum and Interface Reference](workflow-enums-and-interfaces.md)
+- [Global Variables](global-variables.md)
 - [MessageTypeOptions JSON Reference](message-type-options.md)
 - [Filter Host (FilterHostSetting)](filter-host-setting.md)
 - [Transformer Setting (TransformerSetting)](transformer-setting.md)

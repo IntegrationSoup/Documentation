@@ -7,6 +7,7 @@
 It also controls:
 
 - authentication credentials
+- OAuth 2.0 client-credentials authentication
 - client certificate use
 - proxy mode
 - request timeout
@@ -46,6 +47,7 @@ Important non-obvious behavior:
 - `GET` never sends `MessageTemplate` as a request body.
 - For non-GET methods, body bytes are always created from message text using `Encoding`.
 - Response conversion uses `MessageType` and `MessageTypeOptions`, not `ResponseMessageType`.
+- When `AuthenticationMode = OAuth2`, token acquisition happens before the outbound request is sent.
 
 ## JSON shape
 
@@ -67,6 +69,7 @@ Typical serialized shape:
   "Method": 0,
   "ContentType": "application/json",
   "Authentication": false,
+  "AuthenticationMode": 2,
   "UserName": "",
   "Password": "",
   "UseAuthenticationCertificate": false,
@@ -88,6 +91,17 @@ Typical serialized shape:
       "FromSetting": "00000000-0000-0000-0000-000000000000"
     }
   ],
+  "OAuthSettings": {
+    "GrantType": 0,
+    "TokenEndpoint": "https://login.example.com/oauth2/token",
+    "ClientId": "hl7soup-client",
+    "ClientSecret": "${ApiClientSecret}",
+    "Scope": "patient.read patient.write",
+    "ResourceOrAudience": "https://api.example.com/",
+    "ResourceParameterType": 1,
+    "ClientAuthenticationStyle": 0,
+    "ExpirySkewSeconds": 60
+  },
   "WaitForResponse": true,
   "Filters": "00000000-0000-0000-0000-000000000000",
   "Transformers": "00000000-0000-0000-0000-000000000000",
@@ -126,9 +140,29 @@ Important outcome:
 
 ## Authentication and certificate fields
 
+### `AuthenticationMode`
+
+Managed authentication mode for the request.
+
+JSON enum values:
+
+- `0` = `None`
+- `1` = `Basic`
+- `2` = `OAuth2`
+
+Important runtime outcomes:
+
+- `None`: no auth is added by the sender
+- `Basic`: username/password auth path is used
+- `OAuth2`: OAuth settings are used and the sender manages the `Authorization` header
+
 ### `Authentication`
 
 Enables username/password credentials.
+
+Important runtime outcome:
+
+- this is the legacy/basic-auth enable switch and is relevant when `AuthenticationMode = Basic`
 
 ### `UserName`
 
@@ -137,6 +171,92 @@ Username when `Authentication = true`.
 ### `Password`
 
 Password when `Authentication = true`.
+
+### `OAuthSettings`
+
+OAuth settings used when `AuthenticationMode = OAuth2`.
+
+Current support:
+
+- only the `ClientCredentials` grant type is supported
+
+Observable runtime behavior:
+
+- the workflow host acquires the token
+- the sender caches the access token in memory
+- the sender renews the token before expiry using `ExpirySkewSeconds`
+- if the endpoint returns `401`, the sender invalidates the cached token and retries once
+- tokens are not persisted across service restarts
+
+#### `GrantType`
+
+JSON enum values:
+
+- `0` = `ClientCredentials`
+
+#### `TokenEndpoint`
+
+OAuth token endpoint URL. Supports workflow variables.
+
+#### `ClientId`
+
+OAuth client ID. Supports workflow variables.
+
+#### `ClientSecret`
+
+Reference to the client secret.
+
+Recommended use:
+
+- store the secret in a secure Global Variable
+- reference it as `${VariableName}`
+
+Important runtime outcomes:
+
+- the workflow JSON stores the reference, not the secret value
+- the workflow host resolves the reference and reads the secret there
+
+#### `Scope`
+
+Optional `scope` value to include in the token request. Supports workflow variables.
+
+#### `ResourceOrAudience`
+
+Optional extra token-request value used when the token endpoint expects `audience` or `resource`.
+
+#### `ResourceParameterType`
+
+JSON enum values:
+
+- `0` = `None`
+- `1` = `Audience`
+- `2` = `Resource`
+
+Behavior:
+
+- `None`: no extra parameter is sent
+- `Audience`: send `audience=<ResourceOrAudience>`
+- `Resource`: send `resource=<ResourceOrAudience>`
+
+#### `ClientAuthenticationStyle`
+
+JSON enum values:
+
+- `0` = `BasicAuthenticationHeader`
+- `1` = `RequestBody`
+
+Behavior:
+
+- `BasicAuthenticationHeader`: token request uses `Authorization: Basic ...`
+- `RequestBody`: token request sends `client_id` and `client_secret` in the form body
+
+Important runtime outcome:
+
+- this affects the token request only, not the activity message body
+
+#### `ExpirySkewSeconds`
+
+Refresh the token this many seconds before the reported expiry time.
 
 ### `UseAuthenticationCertificate`
 
@@ -198,9 +318,10 @@ Design-time fields that serialize for binding/editor compatibility:
 - `FromType`
 - formatting fields (`Encoding`, `Format`, `TextFormat`, `Truncation`, `Lookup`, and related fields)
 
-Important runtime outcome:
+Important runtime outcomes:
 
 - header value extraction uses the binding source and value expression path, not the formatting subset used by database parameters.
+- when OAuth is active, user-supplied `Authorization` headers are ignored.
 
 ### `FromDirection` (inside `Headers`)
 
@@ -313,6 +434,8 @@ HTTP request timeout in seconds.
 - Selecting `GET` hides body/template and content-type controls, but those fields can still exist in JSON.
 - Headers are saved in sorted order by name.
 - Connection test uses an HTTP `HEAD` call and applies current auth/proxy/certificate settings.
+- When OAuth is enabled, the connection test first acquires a token, then tests the endpoint with that token.
+- If the endpoint rejects `HEAD` with `405 Method Not Allowed`, token acquisition may still have succeeded.
 - If encoding text is cleared in the dialog, save path has a typo fallback (`uft-8`) which is not a valid encoding and can break runtime if persisted.
 - Advanced inherited response fields (`ResponseMessageType`, `DifferentResponseMessageType`) are not the practical control path for this sender.
 
@@ -324,7 +447,12 @@ New `HttpSenderSetting` defaults:
 - `Method = 0` (`POST`)
 - `TimeoutSeconds = 30`
 - `UseProxy = 0` (`UseDefaultProxy`)
+- `AuthenticationMode = 0` (`None`)
 - `WaitForResponse = true`
+- `OAuthSettings.GrantType = 0` (`ClientCredentials`)
+- `OAuthSettings.ClientAuthenticationStyle = 0` (`BasicAuthenticationHeader`)
+- `OAuthSettings.ResourceParameterType = 0` (`None`)
+- `OAuthSettings.ExpirySkewSeconds = 60`
 
 ## Pitfalls and hidden outcomes
 
@@ -335,6 +463,9 @@ New `HttpSenderSetting` defaults:
 - `ResponseMessageType` can serialize but is not the runtime response conversion selector in this sender.
 - Manual message-type options can be overwritten by UI round-trip.
 - Certain restricted header names can fail when added via WebClient header APIs.
+- OAuth is currently **client credentials only**.
+- OAuth tokens are cached in memory only, not persisted across restarts.
+- `ClientSecret` should normally reference a secure Global Variable, not contain the raw secret directly.
 
 ## Examples
 
@@ -390,6 +521,34 @@ New `HttpSenderSetting` defaults:
   "MessageType": 13,
   "MessageTemplate": "{ \"event\": \"complete\" }",
   "WaitForResponse": false
+}
+```
+
+### OAuth 2.0 client-credentials example
+
+```json
+{
+  "$type": "HL7Soup.Functions.Settings.Senders.HttpSenderSetting, HL7SoupWorkflow",
+  "Id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+  "Name": "Send to FHIR API",
+  "Method": 0,
+  "Server": "https://api.example.com/fhir/Patient",
+  "ContentType": "application/fhir+json",
+  "MessageType": 11,
+  "MessageTemplate": "{ \"resourceType\": \"Patient\" }",
+  "AuthenticationMode": 2,
+  "OAuthSettings": {
+    "GrantType": 0,
+    "TokenEndpoint": "https://login.example.com/oauth2/token",
+    "ClientId": "hl7soup-client",
+    "ClientSecret": "${FhirApiClientSecret}",
+    "Scope": "patient.write",
+    "ResourceOrAudience": "https://api.example.com/",
+    "ResourceParameterType": 1,
+    "ClientAuthenticationStyle": 0,
+    "ExpirySkewSeconds": 60
+  },
+  "WaitForResponse": true
 }
 ```
 
