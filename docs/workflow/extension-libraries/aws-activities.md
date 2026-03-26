@@ -1,6 +1,6 @@
 # AWS Activities
 
-The AWS Activities Extension Library adds the **Send S3** activity to Integration Soup.
+The AWS Activities Extension Library adds the **AWS S3 Upload** activity to Integration Soup.
 
 Use it to archive messages, store text-based exports, or hand workflow output to downstream AWS-based processes.
 
@@ -13,7 +13,7 @@ Use it to archive messages, store text-based exports, or hand workflow output to
 
 1. Install the MSI on the Integration Soup server.
 2. Restart the Integration Soup service if needed.
-3. Add **Send S3** after the step that produces the text you want to upload.
+3. Add **AWS S3 Upload** after the step that produces the text you want to upload.
 4. In the activity message template, use **Insert Activity Message** to bring in the text from the receiver or earlier activity.
 5. Fill in the AWS parameter fields below. For reused settings such as credentials or region, insert workflow or global variables.
 
