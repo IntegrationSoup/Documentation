@@ -5,7 +5,7 @@
 
 ## Where Extension Library Docs Should Go
 - Preferred location for extension library docs:
-  - `docs/workflow/extension-libraries/`
+  - `docs/integration-workflows/extension-libraries/`
 - Keep extension library pages together instead of scattering them across unrelated sender/receiver pages.
 
 ## Extension Library Page Expectations

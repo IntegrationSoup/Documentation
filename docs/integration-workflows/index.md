@@ -1,6 +1,10 @@
-# Workflow
+# Integration Workflows
 
-This section covers how to build workflows in Integration Soup Integration Host.
+This section covers how to build integration workflows in Integration Soup Integration Host.
+
+In some other integration systems, these are known as Channels.
+
+Integration Soup uses the term workflow for the end-to-end integration definition that receives, transforms, routes, and sends messages.
 
 ## Core Concepts
 
