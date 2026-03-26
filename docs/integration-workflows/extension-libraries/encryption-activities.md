@@ -5,7 +5,7 @@ The Encryption Activities Extension Library adds two activities to Integration S
 - **Encrypt Message**
 - **Decrypt Message**
 
-Use them when you need to protect message content before it is stored or transmitted, and then recover the original text later in the workflow when needed.
+Use them when you need to protect message content before it is stored or transmitted, and then recover the original content later in the workflow when needed.
 
 ## Download
 
@@ -30,17 +30,17 @@ A longer key is better. The built-in guidance recommends at least 12 characters.
 
 ## Activity message
 
-- For **Encrypt Message**, place the plain text to protect into the activity message.
+- For **Encrypt Message**, place the content to protect into the activity message. The incoming message type is selectable in the workflow designer so the activity can be used in more than one workflow shape.
 - For **Decrypt Message**, place the encrypted text into the activity message.
 
 A common pattern is to use **Insert Activity Message** so the text flows directly from the previous workflow step.
 
 ## Response message
 
-- **Encrypt Message** returns encrypted text.
-- **Decrypt Message** returns the original readable text.
+- **Encrypt Message** returns encrypted text in a **Text** message.
+- **Decrypt Message** returns the decrypted content and lets you choose the response message type in the workflow designer so downstream steps can treat the value as the appropriate message type.
 
-Both return **Text** messages that can be passed to later workflow steps.
+When decrypting non-text content, select the response type that matches the original message representation.
 
 ## Typical uses
 

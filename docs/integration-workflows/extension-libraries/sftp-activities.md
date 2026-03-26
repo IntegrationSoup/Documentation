@@ -47,7 +47,7 @@ Examples:
 ### Upload-only parameters
 
 - **Create Remote Directory**: set to `true` if the remote folder should be created automatically when it does not exist
-- **Treat Message As Base64**: set to `true` when the activity message already contains base64-encoded file bytes
+- **Treat Message As Base64**: set to `true` when the activity message text already contains base64-encoded file bytes that should be uploaded exactly
 
 ### Download-only parameters
 
@@ -59,8 +59,11 @@ Examples:
 
 Place the content to upload into the activity message.
 
-- For plain HL7, CSV, XML, JSON, or another text payload, insert that text normally and leave **Treat Message As Base64** as `false`.
-- If an earlier step returns binary data as base64 text and you want to upload the real file bytes, insert that base64 content and set **Treat Message As Base64** to `true`.
+The incoming message type is selectable in the workflow designer.
+
+- For plain HL7, CSV, XML, JSON, or another UTF-8 text payload, choose the matching text-based message type, insert the text normally, and leave **Treat Message As Base64** as `false`.
+- For Binary or DICOM content, choose the matching message type and the activity uploads the underlying file bytes.
+- If an earlier step returns file bytes as base64 text and you want to upload those bytes exactly, insert that base64 content and set **Treat Message As Base64** to `true`.
 
 ### SFTP Download
 
@@ -71,7 +74,10 @@ It works from the connection settings and the remote path you provide.
 ## Response message
 
 - **SFTP Upload** returns a **Text** message confirming the upload
-- **SFTP Download** returns a **Binary** response message containing the downloaded file bytes as base64 text
+- **SFTP Download** lets you choose the response message type in the workflow designer
+- Choose **Binary** or **DICOM** when you want to preserve the downloaded file bytes for later file-style processing
+- Choose a text-based response type when the remote file is UTF-8 text and you want the downloaded content interpreted as HL7, text, XML, JSON, CSV, or another text message
+- If you select a text-based response type for a file that is not valid UTF-8, the activity returns an error
 
 ## Typical uses
 

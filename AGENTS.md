@@ -9,6 +9,9 @@
 - Use the user-facing term `Extension Library`.
 - Extension library docs should live under a dedicated workflow section, preferably:
   - `docs/integration-workflows/extension-libraries/`
+- Describe the feature's current behavior directly.
+- Avoid contrast wording like `still`, `now`, `currently`, or `used to` unless the comparison is genuinely important to understanding the feature.
+- Do not frame feature docs as a history of what changed; write them as product documentation for what the feature does.
 - When documenting an extension library, include:
   - what it does
   - prerequisites

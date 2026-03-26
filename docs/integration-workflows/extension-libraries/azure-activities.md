@@ -35,19 +35,20 @@ Use this extension library to archive workflow output in Azure Blob Storage, pub
 
 ## Send Blob
 
-Add **Send Blob** after the step that produces the text you want to upload.
+Add **Send Blob** after the step that produces the content you want to upload.
 
-In the activity message template, use **Insert Activity Message** to bring in the text from the receiver or earlier activity.
+In the activity message template, use **Insert Activity Message** to bring in the content from the receiver or earlier activity.
 
 ## What the installer adds
 
-- **Blob Storage** support through the **Azure Blob Upload** activity
+- **Blob Storage** support through the **Azure Blob Upload** activity, including text, binary, and DICOM uploads
 - **Azure Service Bus** support through the built-in receiver and sender workflow types
 
 ## Typical uses
 
 - Archiving inbound or outbound messages to Azure
 - Publishing CSV, XML, JSON, or other text output to Blob Storage
+- Storing binary exports or DICOM files in Azure Blob Storage
 - Dropping workflow output where other Azure services will pick it up
 - Sending workflow messages to Azure Service Bus queues or topics
 - Receiving inbound Azure Service Bus messages into a workflow
