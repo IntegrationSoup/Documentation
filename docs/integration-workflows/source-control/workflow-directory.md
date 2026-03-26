@@ -9,7 +9,7 @@ This page documents the workflow directory as a black-box operational feature:
 - when Integration Soup imports files from there
 - how this interacts with source control and deployment tooling
 
-This page does not describe internal classes or code paths.
+It focuses on runtime behavior, file flow, and deployment interaction at the product boundary.
 
 ---
 
@@ -79,7 +79,7 @@ This means:
 - if the workflow directory is also a git working copy, a normal save appears as a normal modified file
 - if the workflow directory is a sync target, external tooling can detect the updated file and publish it elsewhere
 
-If workflow history and archive saving is not enabled, Integration Soup does not automatically export workflow edits to the workflow directory.
+Automatic export to the workflow directory comes from workflow history and archive saving. When that setting is disabled, the workflow directory continues to act as an import and deployment folder.
 
 ---
 
@@ -114,7 +114,7 @@ Important runtime behavior:
 - newer files replace the currently loaded workflow with the same workflow ID
 - invalid, corrupt, or partially copied files may be skipped and retried later
 
-Dropping a file into the folder does not bypass the normal import path. It is still treated as a real workflow import.
+A dropped file still goes through the normal workflow import path and is treated as a real workflow import.
 
 ---
 
@@ -125,7 +125,7 @@ The host supports three workflow directory import modes:
 ### `Off`
 
 - no startup import
-- no automatic background import
+- background import remains disabled
 
 Use this when the folder is used only as an export target, or when another process stages files there but import should remain disabled.
 

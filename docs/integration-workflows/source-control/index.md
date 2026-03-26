@@ -28,7 +28,7 @@ Integration Soup:
 - imports workflows from the local workflow directory
 - can detect newly dropped workflow files automatically or on restart
 
-Integration Soup does not:
+External tooling typically provides:
 
 - run `git pull`, `git push`, or `git commit`
 - choose a branch strategy for you

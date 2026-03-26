@@ -132,7 +132,7 @@ Benefits:
 
 - each node has a clearly owned local workflow directory
 - rollout order can be controlled
-- a storage issue on one node does not automatically affect every node
+- storage or deployment issues stay isolated to the affected node
 
 ### Shared storage
 

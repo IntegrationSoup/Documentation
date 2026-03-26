@@ -114,7 +114,7 @@ Typical model:
 - optionally allow manual redeploy with `workflow_dispatch`
 - run the deployment on a self-hosted runner that can reach the target host or target share
 
-GitHub itself does not directly make private machines pull new files.
+Private-machine deployment uses GitHub together with a self-hosted runner, deployment agent, or scheduled sync on the target side.
 
 One of these still has to exist on the target side:
 
