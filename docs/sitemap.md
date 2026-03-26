@@ -1,6 +1,6 @@
 # Documentation Sitemap
 
-Last updated: 2026-03-02
+Last updated: 2026-03-26
 
 ## Root
 
@@ -62,6 +62,14 @@ Last updated: 2026-03-02
 - [Web Service Sender](workflow/sender-activities/web-service-sender.md)
 - [Code Sender](workflow/sender-activities/code-sender.md)
 - [DICOM Sender](workflow/sender-activities/dicom-sender.md)
+
+## Workflow Source Control and Deployment
+
+- [Workflow Source Control and Deployment](workflow/source-control/index.md)
+- [Workflow Directory and Source Control](workflow/source-control/workflow-directory.md)
+- [GitHub Integration](workflow/source-control/github.md)
+- [Generic Git Patterns](workflow/source-control/generic-git.md)
+- [Deployment Patterns](workflow/source-control/deployment-patterns.md)
 
 ## AI Workflow Authoring
 

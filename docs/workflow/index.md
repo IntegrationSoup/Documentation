@@ -15,6 +15,14 @@ This section covers how to build workflows in Integration Soup Integration Host.
 - [Sender Activities](sender-activities/index.md)
 - [Extension Libraries](extension-libraries/index.md)
 
+## Source Control and Deployment
+
+- [Workflow Source Control and Deployment](source-control/index.md)
+- [Workflow Directory and Source Control](source-control/workflow-directory.md)
+- [GitHub Integration](source-control/github.md)
+- [Generic Git Patterns](source-control/generic-git.md)
+- [Deployment Patterns](source-control/deployment-patterns.md)
+
 ## API and JSON Contracts
 
 - [Workflow API](api/index.md)
