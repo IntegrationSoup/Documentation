@@ -64,10 +64,10 @@ Use the navigation menu to explore workflow concepts, activity specifications, v
 
 ## Documentation Entry Points
 
-- [Workflow Documentation](workflow/index.md)
-- [Receiver Activities](workflow/receiver-activities/index.md)
-- [Sender Activities](workflow/sender-activities/index.md)
-- [Workflow API](workflow/api/index.md)
-- [Workflow Reference](workflow/reference/index.md)
-- [AI Workflow Authoring](workflow/ai/index.md)
+- [Integration Workflows](integration-workflows/index.md)
+- [Receiver Activities](integration-workflows/receiver-activities/index.md)
+- [Sender Activities](integration-workflows/sender-activities/index.md)
+- [Workflow API](integration-workflows/api/index.md)
+- [Workflow Reference](integration-workflows/reference/index.md)
+- [AI Workflow Authoring](integration-workflows/ai/index.md)
 - [Sitemap](sitemap.md)

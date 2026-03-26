@@ -8,7 +8,7 @@
 ## Extension Library Documentation
 - Use the user-facing term `Extension Library`.
 - Extension library docs should live under a dedicated workflow section, preferably:
-  - `docs/workflow/extension-libraries/`
+  - `docs/integration-workflows/extension-libraries/`
 - When documenting an extension library, include:
   - what it does
   - prerequisites

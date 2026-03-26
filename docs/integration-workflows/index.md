@@ -1,6 +1,10 @@
-# Workflow
+# Integration Workflows
 
-This section covers how to build workflows in Integration Soup Integration Host.
+This section covers how to build integration workflows in Integration Soup Integration Host.
+
+In some other integration systems, these are known as Channels.
+
+Integration Soup uses the term workflow for the end-to-end integration definition that receives, transforms, routes, and sends messages.
 
 ## Core Concepts
 
@@ -14,6 +18,14 @@ This section covers how to build workflows in Integration Soup Integration Host.
 - [Receiver Activities](receiver-activities/index.md)
 - [Sender Activities](sender-activities/index.md)
 - [Extension Libraries](extension-libraries/index.md)
+
+## Source Control and Deployment
+
+- [Workflow Source Control and Deployment](source-control/index.md)
+- [Workflow Directory and Source Control](source-control/workflow-directory.md)
+- [GitHub Integration](source-control/github.md)
+- [Generic Git Patterns](source-control/generic-git.md)
+- [Deployment Patterns](source-control/deployment-patterns.md)
 
 ## API and JSON Contracts
 
