@@ -26,12 +26,18 @@ Last updated: 2026-03-02
 
 - [Reference Index](workflow/reference/index.md)
 - [Workflow Enum and Interface Reference](workflow/reference/workflow-enums-and-interfaces.md)
+- [Global Variables](workflow/reference/global-variables.md)
 - [MessageTypeOptions JSON Reference](workflow/reference/message-type-options.md)
 - [Filter Host (FilterHostSetting)](workflow/reference/filter-host-setting.md)
 - [Transformer Setting (TransformerSetting)](workflow/reference/transformer-setting.md)
 - [Variable Creator JSON Reference](workflow/reference/variable-creator.md)
 - [Paths For AI](workflow/reference/pathsforai.md)
 - [Paths Detailed](workflow/reference/pathsindepth.md)
+
+## Extension Libraries
+
+- [Extension Libraries](workflow/extension-libraries/index.md)
+- [Azure Activities](workflow/extension-libraries/azure-activities.md)
 
 ## Receiver Activities
 
@@ -41,6 +47,7 @@ Last updated: 2026-03-02
 - [MLLP Receiver](workflow/receiver-activities/mllp-receiver.md)
 - [Directory Scan Receiver](workflow/receiver-activities/directory-scan-receiver.md)
 - [Database Receiver](workflow/receiver-activities/database-reader.md)
+- [Azure Service Bus Receiver (Azure extension)](workflow/receiver-activities/azure-service-bus-receiver.md)
 - [Timer Receiver](workflow/receiver-activities/timer-receiver.md)
 - [DICOM Receiver](workflow/receiver-activities/dicom-receiver.md)
 
@@ -50,6 +57,7 @@ Last updated: 2026-03-02
 - [File Writer](workflow/sender-activities/file-writer.md)
 - [Database Query](workflow/sender-activities/database-query.md)
 - [HTTP Sender](workflow/sender-activities/http-sender.md)
+- [Azure Service Bus Sender (Azure extension)](workflow/sender-activities/azure-service-bus-sender.md)
 - [MLLP Sender](workflow/sender-activities/mllp-sender.md)
 - [Web Service Sender](workflow/sender-activities/web-service-sender.md)
 - [Code Sender](workflow/sender-activities/code-sender.md)
