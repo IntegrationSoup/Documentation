@@ -40,4 +40,6 @@ Direct MSI links:
 ## Notes
 
 - Some extensions have extra server prerequisites, such as a browser for HTML to PDF or LibreOffice for RTF to PDF.
+- In version 4, HL7 Value Transformers runs as transformer code loaded from `Custom Libraries`.
+- [Version 5 deployment](version-5-deployment.md) uses registered isolated runners and requires bridge-enabled Extension Library installers.
 - Each extension page below explains the exact parameters to set, what to place into the activity message, and what the response message contains.
