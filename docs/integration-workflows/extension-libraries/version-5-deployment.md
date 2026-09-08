@@ -34,3 +34,24 @@ generations from relying on replacement of an executable held open by a runner.
 Before production release, verify installation, repair, failed-upgrade rollback,
 uninstallation isolation and a later host-v5 upgrade in a disposable environment.
 Compilation or MSI database inspection alone does not prove these scenarios.
+
+## Optional assistance in the version 5 browser
+
+Extension release 5.0.3 and a version 5 browser build with designer assistance
+provide optional help while configuring activities. SFTP shows the private-key
+passphrase field when a private-key path is present; hiding it does not clear its
+saved value. AWS S3 offers **Load buckets**, and Azure Blob offers **Load containers**.
+These buttons use literal connection settings to list choices from the service.
+The server account needs network access and the supplied credentials need list
+permission. Names can also be entered manually, including workflow expressions;
+those expressions are not evaluated by the list buttons.
+
+Data from PDF permits an editable JSON **Response Message** sample below its
+binary input template. Run a representative PDF, copy the actual response from
+the logs, and paste it into this sample to expose useful downstream binding fields.
+Changing the sample does not change the extracted runtime JSON. Other libraries'
+response samples are read-only unless the library explicitly permits editing.
+
+Extensions advertise these capabilities; they are not required to configure or
+run the activity. Version 4 retains its manual fields and runtime behavior without
+interactive assistance. Callback failures leave manual entry available.
