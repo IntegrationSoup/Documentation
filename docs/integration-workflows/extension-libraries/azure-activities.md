@@ -17,8 +17,8 @@ Use this extension library to archive workflow output in Azure Blob Storage, pub
 
 ## Included features
 
-- [Azure Blob Storage](azure-blob-storage.md)
-- [Azure Service Bus](azure-service-bus-activities.md)
+- [Azure Blob Storage](../../workflow/extension-libraries/azure-blob-storage.md)
+- [Azure Service Bus](../../workflow/extension-libraries/azure-service-bus-activities.md)
 
 ## Installing the Azure feature pack
 

@@ -1,6 +1,6 @@
 # Azure Activities: Azure Service Bus
 
-This page covers the Azure Service Bus feature from the [Azure Activities](azure-activities.md) extension library.
+This page covers the Azure Service Bus feature from the [Azure Activities](../../integration-workflows/extension-libraries/azure-activities.md) extension library.
 
 The [IntegrationSoup.AzureActivities.msi](https://www.integrationsoup.com/downloads/CustomActivities/IntegrationSoup.AzureActivities.msi) installer turns on two built-in workflow types:
 

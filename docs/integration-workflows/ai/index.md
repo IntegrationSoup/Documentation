@@ -2,6 +2,7 @@
 
 - [AI Mega Guide (Workflow Authoring)](mega-guide.md)
 - [AI Workflow Structure (AiWorkflowStructure)](ai-workflow-structure.md)
+- [AI Interface Structure Mapping Goal](interface-structure-mapping-goal.md)
 - [Workflow JSON Task Catalog](task-catalog.md)
 - [Workflow Construction Tasks](tasks/index.md)
 - [Generation Rule Components](components/index.md)

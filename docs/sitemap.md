@@ -1,6 +1,6 @@
 # Documentation Sitemap
 
-Last updated: 2026-03-26
+Last updated: 2026-08-02
 
 ## Root
 
@@ -37,7 +37,17 @@ Last updated: 2026-03-26
 ## Extension Libraries
 
 - [Extension Libraries](integration-workflows/extension-libraries/index.md)
+- [HTML to PDF](integration-workflows/extension-libraries/html-to-pdf.md)
+- [RTF to PDF](integration-workflows/extension-libraries/rtf-to-pdf.md)
 - [Azure Activities](integration-workflows/extension-libraries/azure-activities.md)
+- [Azure Blob Storage](workflow/extension-libraries/azure-blob-storage.md)
+- [Azure Service Bus](workflow/extension-libraries/azure-service-bus-activities.md)
+- [AWS Activities](integration-workflows/extension-libraries/aws-activities.md)
+- [Encryption Activities](integration-workflows/extension-libraries/encryption-activities.md)
+- [SFTP Activities](integration-workflows/extension-libraries/sftp-activities.md)
+- [ZIP Activities](integration-workflows/extension-libraries/zip-activities.md)
+- [Validate HL7 Transformer](integration-workflows/extension-libraries/validate-hl7-transformer.md)
+- [HL7 Value Transformers](integration-workflows/extension-libraries/hl7-value-transformers.md)
 
 ## Receiver Activities
 
@@ -76,6 +86,7 @@ Last updated: 2026-03-26
 - [AI Docs Index](integration-workflows/ai/index.md)
 - [AI Mega Guide](integration-workflows/ai/mega-guide.md)
 - [AI Workflow Structure](integration-workflows/ai/ai-workflow-structure.md)
+- [AI Interface Structure Mapping Goal](integration-workflows/ai/interface-structure-mapping-goal.md)
 - [Workflow JSON Task Catalog](integration-workflows/ai/task-catalog.md)
 
 ### AI Tasks
