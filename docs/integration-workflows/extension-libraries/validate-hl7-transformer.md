@@ -9,6 +9,8 @@ Both activities run a saved HL7 Soup validation profile. They report red invalid
 
 ## Download and prerequisites
 
+Install .NET Framework 4.8 or later and the [Microsoft .NET 10 Runtime (x64)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). The MSI checks these prerequisites before new installation or upgrade.
+
 - [IntegrationSoup.ValidateHl7Transformer.msi](https://www.integrationsoup.com/downloads/CustomActivities/IntegrationSoup.ValidateHl7Transformer.msi)
 - [Website tutorial page](https://www.integrationsoup.com/ExtensionLibraries/ValidateHl7Transformer.html)
 - Integration Soup installed on the machine that runs the workflow

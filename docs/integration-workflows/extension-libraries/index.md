@@ -59,6 +59,12 @@ A release value of **528040 or higher** meets the requirement. The value
 **461814** identifies .NET Framework 4.7.2 and requires an update. See
 [Microsoft's framework detection guidance](https://learn.microsoft.com/en-us/dotnet/framework/install/how-to-determine-which-versions-are-installed).
 
+The HL7 validation runner additionally requires the [Microsoft .NET 10 Runtime (x64)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). Its installer reports a missing runtime before a new installation or upgrade.
+
+## Installation errors
+
+Interactive installers display errors and an Installation failed screen with the diagnostic log location. Verbose MSI logging is automatic: logs normally appear as MSI*.log in the installing account's temporary folder. Send the log to support if setup fails. Quiet deployments return an error code and write a log without showing dialogs. If Windows cannot open the MSI file, package-defined logging cannot start.
+
 ## General installation flow
 
 1. Run the MSI on the Integration Soup server.
