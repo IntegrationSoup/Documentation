@@ -1,6 +1,6 @@
 # Azure Activities: Blob Storage
 
-This page covers the **Azure Blob Upload** feature from the [Azure Activities](../../integration-workflows/extension-libraries/azure-activities.md) extension library.
+This page covers **Azure Blob Upload** and **Azure Blob Download** from the [Azure Activities](../../integration-workflows/extension-libraries/azure-activities.md) extension library. The Azure Activities guide includes the complete download parameters, response encoding and size limit, ETag/version protection, runtime requirements, and private-by-default new container creation.
 
 Use it to archive HL7 or FHIR messages, store exports or file content, or hand workflow output to another Azure-based process.
 
