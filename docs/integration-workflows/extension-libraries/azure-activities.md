@@ -56,13 +56,15 @@ Upload SDK retries are disabled. A lost response can leave an unknown outcome; i
 
 Download needs no input message. Set **Connection String**, **Container Name** and **File Name** (an exact blob key rather than a URL). Case, Unicode, prefixes and significant whitespace are preserved. A connection string with a read-only SAS works; the activity reads only blob properties and content and does not create, list, delete or change access policies.
 
+Leading and trailing slashes are preserved. Keys containing URI-normalized dot segments, such as `a/../b`, are rejected before a read or write so they cannot target another object.
+
 The default response is **Binary**. Binary and DICOM preserve file bytes. Select a text response and an optional **Text Encoding** to decode the content. Blank uses strict UTF-8; invalid bytes fail. A UTF-8 BOM is preserved as U+FEFF. Content type is returned as metadata and does not choose an encoding or decompress content.
 
 **Maximum Download MB** defaults to 8 MiB and accepts 1–8. Both properties and the stream byte count enforce the cap. This conservative bound leaves room for base64 and nested JSON escaping inside the default 64 MiB version 5 bridge envelope. Larger files need another transfer path.
 
-Optional **Version ID** selects a stored version; **Expected ETag** rejects a changed object. Every content GET is pinned to the ETag inspected by HEAD, even when Expected ETag is blank. Incomplete content fails. `AzureBlobMetadataJson` returns `name`, `size`, `etag`, `contentType`, `versionId` and `lastModifiedUtc`.
+Optional **Version ID** selects a stored version without altering the exact blob key, including leading and trailing slashes. **Expected ETag** rejects a changed object and requires a specific ETag; wildcard `*` is rejected for both Download and Upload. Every content GET is pinned to the ETag inspected by HEAD, even when Expected ETag is blank. Incomplete content fails. `AzureBlobMetadataJson` returns `name`, `size`, `etag`, `contentType`, `versionId` and `lastModifiedUtc`.
 
-Missing or denied blobs, invalid credentials or encodings, oversized content and transport failures fail the invocation. Download disables SDK retries, and the bridge never automatically replays a whole activity after uncertain dispatch. No download polling checkpoint is persisted.
+An interrupted download can resume at most five times, preserving the selected key/version and ETag. One two-minute limit covers the entire read; an earlier version 5 bridge deadline or cancellation also stops it. HTTP request retries are disabled, and the bridge never automatically replays a whole activity after uncertain dispatch. Cancelled or exhausted transfers fail without returning partial content. Missing or denied blobs, invalid credentials or encodings, oversized content and transport failures also fail the invocation.
 
 ## Runtime requirements
 
